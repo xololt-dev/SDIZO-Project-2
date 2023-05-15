@@ -2,16 +2,15 @@
 #include <conio.h>
 #include <string>
 
-#include "prim_mst.hpp"
+#include "mst.hpp"
 
 void displaySubMenu(std::string info);
 void displayMainMenu();
 
-Prim_MST mst;
+MST mst;
 
 int main()
 {
-	
 	displayMainMenu();
 	return 0;
 }
@@ -39,30 +38,32 @@ void menu_MST()
 		opt = _getche();
 		std::cout << std::endl;
 		switch (opt) {
-		case '1': //tutaj wczytytwanie tablicy z pliku
+		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
 			mst.readFromFile(fileName);
-			// myTab.loadFromFile(fileName);
-			// myTab.display();
+			mst.displayList();
+			mst.displayMatrix();
 			break;
 
-		case '2': //tutaj usuwanie elemenu z tablicy
-			std::cout << " podaj index:";
-			std::cin >> index;
-			// myTab.deleteFromTable(index);
-			// myTab.display();
+		case '2': //tutaj generowanie grafu
+			// std::cout << " podaj index:";
+			// std::cin >> index;
+
 			break;
 
-		case '3': //tutaj dodawanie elemetu do tablicy
+		case '3': //tutaj wyœwietlanie
+			mst.displayMST();
+			mst.displayList();
+			mst.displayMatrix();
+			break;
+
+		case '4': //tutaj algorytm Prima
+			mst.algorithmPrim();
 			mst.displayMST();
 			break;
 
-		case '4': //tutaj znajdowanie elemetu w tablicy
-			mst.algorithm();
-			break;
-
-		case '5':  //tutaj generowanie  tablicy
+		case '5':  //tutaj algorytm Kruskala
 			std::cout << "Podaj ilosc elementów tablicy:";
 			std::cin >> value;
 			// myTab.generateTable(value);
@@ -75,7 +76,6 @@ void menu_MST()
 
 void displayMainMenu() {
 	char option;
-	//inicjalizacja class algo?
 
 	do {
 		std::cout << std::endl;

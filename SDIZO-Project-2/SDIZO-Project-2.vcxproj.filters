@@ -23,7 +23,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="prim_mst.hpp">
+    <ClInclude Include="mst.hpp">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
   </ItemGroup>

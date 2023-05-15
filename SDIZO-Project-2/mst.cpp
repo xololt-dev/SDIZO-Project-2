@@ -1,44 +1,14 @@
 // Minimal Spanning Tree
 // Kruskal
 // Prim
-#include "prim_mst.hpp"
+#include "mst.hpp"
 
 #include <string>
 #include <fstream>
 #include <iostream>
-/*
-Prim_MST::Prim_MST() {
-	/*
-	verticesChecked = verticesNotChecked = nullptr;
-	edgesCollection = edgesMST = nullptr;
-	prioQueue = nullptr;
-	
-}
-*/
-/*
-Prim_MST::~Prim_MST() {
-	verticesChecked.clear();
-	verticesNotChecked.clear();
-	edgesCollection.clear();
-	edgesMST.clear();
-	while (!prioQueue.empty()) prioQueue.pop();
-	/*
-	delete verticesChecked;
-	delete verticesNotChecked;
-	delete edgesCollection;
-	delete edgesMST;
-	delete prioQueue;
-
-	verticesChecked = nullptr;
-	verticesNotChecked = nullptr;
-	edgesCollection = nullptr;
-	edgesMST = nullptr;
-	prioQueue = nullptr;
-	
-}*/
 
 // za³adowaæ liczbê krawêdzi, liczbê wierzcho³ków i ka¿d¹ krawêdŸ
-void Prim_MST::readFromFile(std::string FileName) {
+void MST::readFromFile(std::string FileName) {
 	std::fstream file;
 	file.open(FileName, std::ios::in);
 
@@ -46,58 +16,25 @@ void Prim_MST::readFromFile(std::string FileName) {
 		int edgesAmount = 0, vertexAmount = 0;
 		int temp = 0;
 
-		// clear the values
-		/*
-		if (edgesCollection) {
-			delete edgesCollection;
-			edgesCollection = nullptr;
-		}
-		if (edgesMST) {
-			delete edgesMST;
-			edgesMST = nullptr;
-		}
-		if (verticesNotChecked) {
-			delete verticesNotChecked;
-			verticesNotChecked = nullptr;
-		}
-		if (verticesChecked) {
-			delete verticesChecked;
-			verticesChecked = nullptr;
-		}
-		if (prioQueue) {
-			delete prioQueue;
-			prioQueue = nullptr;
-		}
-		*/
+
 		verticesChecked.clear();
 		verticesNotChecked.clear();
 		edgesCollection.clear();
 		edgesMST.clear();
 		while (!prioQueue.empty()) prioQueue.pop();
 
-		// amount of edges in a graph
+		// Iloœæ krawêdzi
 		file >> edgesAmount;
-		// edgesCollection = new ListEdge;
-		// edgesCollection.resize(edgesAmount);
 
-		// amount of vertices in a graph
+		// Iloœæ wierzcho³ków
 		file >> vertexAmount;
-		// verticesNotChecked.resize(vertexAmount);
-		/*
-		verticesNotChecked = new List;
-		verticesChecked = new List;
-		edgesMST = new ListEdge;
-		prioQueue = new HeapEdge;
-		*/
+
 
 		Edge tempEdge;
 		// Zrobiæ dodawanie po jednym elem.
 		while (file >> temp) {
 			tempEdge.source = temp;
-			/*
-			if (verticesNotChecked->listSize() < vertexAmount) {
-				if (!(verticesNotChecked->IsValueInList(temp))) verticesNotChecked->push_backValue(temp);
-			}*/
+
 			if (verticesNotChecked.size() < vertexAmount) {
 				bool dodaj = 1;
 				for (auto const& i : verticesNotChecked) {
@@ -111,11 +48,6 @@ void Prim_MST::readFromFile(std::string FileName) {
 
 			file >> temp;
 			tempEdge.destination = temp;
-			/*
-			if (verticesNotChecked->listSize() < vertexAmount) {
-				if (!(verticesNotChecked->IsValueInList(temp))) verticesNotChecked->push_backValue(temp);
-			}
-			*/
 			if (verticesNotChecked.size() < vertexAmount) {
 				bool dodaj = 1;
 				for (auto const& i : verticesNotChecked) {
@@ -138,7 +70,13 @@ void Prim_MST::readFromFile(std::string FileName) {
 	else std::cout << "Plik nie zostal otworzony!\n";
 }
 
-void Prim_MST::algorithm() {
+void MST::algorithmPrim() {
+	if (verticesNotChecked.empty()) {
+		verticesChecked = verticesNotChecked;
+		verticesNotChecked.sort();
+		verticesChecked.clear();
+		edgesMST.clear();
+	}
 	int numberOfVertex = verticesNotChecked.size() - 1;
 	int vertexID = verticesNotChecked.front();
 	std::list<int>::iterator begin = verticesNotChecked.begin();
@@ -176,7 +114,6 @@ void Prim_MST::algorithm() {
 
 					while (!prioQueue.empty()) {
 						temp = prioQueue.top();
-						// tempQueue.push(temp);
 						prioQueue.pop();
 						if (temp == e) {
 							doWstawienia = 0;
@@ -268,14 +205,125 @@ void Prim_MST::algorithm() {
 			numberOfVertex--;
 		}
 	}
+	while (!prioQueue.empty()) prioQueue.pop();
 }
 
-void Prim_MST::displayMST() {
-	if (edgesMST.empty()) std::cout << "Lista jest pusta." << std::endl;
+void MST::displayMST() {
+	if (edgesMST.empty()) std::cout << "Lista MST jest pusta." << std::endl;
 	else {
+		int weightTotal = 0;
 		for (Edge e : edgesMST) {
 			std::cout << e.source << " " << e.destination << " " << e.weight << "\n";
-		}			
-		std::cout << "\n" << std::endl;
+			weightTotal += e.weight;
+		}
+		std::cout << "Waga drzewa rozpinajacego: " << weightTotal << std::endl;
+	}
+}
+
+void MST::displayList() {
+	if (edgesCollection.empty()) std::cout << "Lista jest pusta." << std::endl;
+	else {
+		std::list<int>::iterator it;
+		if (verticesChecked.empty()) {
+			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
+				std::cout << *it << ": ";
+				for (Edge e : edgesCollection) {
+					if (e.source == *it) std::cout << e.destination << " ";
+					else if (e.destination == *it) std::cout << e.source << " ";
+				}
+				std::cout << "\n";
+			}
+		}
+		else {
+			verticesChecked.sort();
+
+			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+				std::cout << *it << ": ";
+				for (Edge e : edgesCollection) {
+					if (e.source == *it) std::cout << e.destination << " ";
+					else if (e.destination == *it) std::cout << e.source << " ";
+				}
+				std::cout << "\n";
+			}
+		}
+		std::cout << std::endl;
+	}
+}
+
+void MST::displayMatrix() {
+	if (edgesCollection.empty()) std::cout << "Lista jest pusta." << std::endl;
+	else {
+		std::list<int>::iterator it;
+		if (verticesChecked.empty()) {
+			std::cout << "   ";
+			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
+				std::cout << *it << " ";
+			}
+			std::cout << "\n";
+			std::cout << " |";
+			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
+				std::cout << "--";
+			}
+			std::cout << "\n";
+			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
+				std::cout << *it << "| ";
+				std::list<int>::iterator its;
+				for (its = verticesNotChecked.begin(); its != verticesNotChecked.end(); its++) {
+					if (its != it) {
+						int exists = 0;
+						for (Edge e : edgesCollection) {
+							if (e.source == *it && e.destination == *its) {
+								exists = 1;
+								break;
+							}
+							else if (e.destination == *it && e.source == *its) {
+								exists = 1;
+								break;
+							}
+						}
+						std::cout << exists << " ";
+					}
+					else std::cout << "0 ";
+				}
+				std::cout << "\n";
+			}
+		}
+		else {
+			verticesChecked.sort();
+
+			std::cout << "   ";
+			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+				std::cout << *it << " ";
+			}
+			std::cout << "\n";
+			std::cout << " |";
+			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+				std::cout << "--";
+			}
+			std::cout << "\n";
+			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+				std::cout << *it << "| ";
+				std::list<int>::iterator its;
+				for (its = verticesChecked.begin(); its != verticesChecked.end(); its++) {
+					if (its != it) {
+						int exists = 0;
+						for (Edge e : edgesCollection) {
+							if (e.source == *it && e.destination == *its) {
+								exists = 1;
+								break;
+							}
+							else if (e.destination == *it && e.source == *its) {
+								exists = 1;
+								break;
+							}
+						}
+						std::cout << exists << " ";
+					}
+					else std::cout << "0 ";
+				}
+				std::cout << "\n";
+			}
+		}
+		std::cout << std::endl;
 	}
 }

@@ -131,7 +131,7 @@
     <ClCompile Include="mst.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="prim_mst.hpp" />
+    <ClInclude Include="mst.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

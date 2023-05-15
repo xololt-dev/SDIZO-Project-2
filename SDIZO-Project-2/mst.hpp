@@ -39,15 +39,17 @@ inline bool operator>(const Edge& lhs, const Edge& rhs) {
 	return (lhs.weight > rhs.weight);
 }
 
-class Prim_MST {
+class MST {
 public:
 	void readFromFile(std::string FileName);
-	void algorithm();
+	void algorithmPrim();
 	void displayMST();
+	void displayList();
+	void displayMatrix();
 
 private:
-	//Prim_MST();
-	//~Prim_MST();
+	//MST();
+	//~MST();
 	/*
 	List verticesChecked;		// tablica sprawdzonych
 	List verticesNotChecked;	// tablica niesprawdzonych
