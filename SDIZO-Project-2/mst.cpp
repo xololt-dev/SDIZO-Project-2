@@ -71,8 +71,61 @@ void MST::readFromFile(std::string FileName) {
 }
 
 void MST::generateGraph(int size, int density)
-{
+{	
+	if (!size || !density) return;
+	// cleanup
+	verticesNotChecked.clear();
+	verticesChecked.clear();
+	edgesMST.clear();
+	edgesCollection.clear();
 
+	srand(time(NULL));
+
+	int random, edgesLeft = size * (size - 1) * density / 200;
+	Edge e;
+	for (int i = 0; i < size; i++) {
+		verticesNotChecked.push_back(i);
+		if (i) {
+			random = rand()%(verticesNotChecked.size() - 1);
+			e.weight = rand() % 100;
+			e.source = i;
+			e.destination = random;
+			edgesCollection.push_back(e);
+			edgesLeft--;
+		}
+	}
+
+	std::list<Edge>::iterator it = edgesCollection.begin();
+	std::list<int>::iterator itt;
+	while (edgesLeft) {
+		random = rand() % verticesNotChecked.size();
+		std::cout << random << std::endl;
+		std::list<int> exists;
+		
+		for (it = edgesCollection.begin(); it != edgesCollection.end(); it++) {
+			if (it->source == random) {
+				exists.push_back(it->destination);
+			}
+			else if (it->destination == random) exists.push_back(it->source);
+		}
+		if (!(exists.size() == verticesNotChecked.size() - 1)) {
+			int dest = 0;
+			exists.sort();
+			for (int e : exists) {
+				std::cout << e << " ";
+				if (dest != random && e != dest) break;
+				while (e == dest || dest == random) dest++;
+			}
+			std::cout << std::endl;
+			std::cout << dest << "\n\n";
+
+			e.weight = rand() % 100;
+			e.source = random;
+			e.destination = dest;
+			edgesCollection.push_back(e);
+			edgesLeft--;
+		}		
+	} 
 }
 
 void MST::algorithmPrim() {

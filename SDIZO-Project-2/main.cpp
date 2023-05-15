@@ -31,7 +31,7 @@ void menu_MST()
 {
 	char opt;
 	std::string fileName;
-	int index, value;
+	int amount, density;
 
 	do {
 		displaySubMenu("--- MST ---");
@@ -47,9 +47,11 @@ void menu_MST()
 			break;
 
 		case '2': //tutaj generowanie grafu
-			// std::cout << " podaj index:";
-			// std::cin >> index;
-
+			std::cout << " Podaj ilosc wierzcholkow: ";
+			std::cin >> amount;
+			std::cout << " Podaj gestosc (calkowite %): ";
+			std::cin >> density;
+			mst.generateGraph(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
@@ -65,7 +67,7 @@ void menu_MST()
 
 		case '5':  //tutaj algorytm Kruskala
 			std::cout << "Podaj ilosc elementów tablicy:";
-			std::cin >> value;
+			// std::cin >> value;
 			// myTab.generateTable(value);
 			// myTab.display();
 			break;
