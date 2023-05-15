@@ -41,23 +41,17 @@ inline bool operator>(const Edge& lhs, const Edge& rhs) {
 
 class MST {
 public:
+	// MST();
+	~MST();
+
 	void readFromFile(std::string FileName);
+	void generateGraph(int size, int density);
 	void algorithmPrim();
 	void displayMST();
 	void displayList();
 	void displayMatrix();
 
 private:
-	//MST();
-	//~MST();
-	/*
-	List verticesChecked;		// tablica sprawdzonych
-	List verticesNotChecked;	// tablica niesprawdzonych
-	ListEdge edgesCollection;
-	ListEdge edgesMST;
-	HeapEdge prioQueue;
-	*/
-	
 	std::list<int> verticesChecked;
 	std::list<int> verticesNotChecked;
 	std::list<Edge> edgesCollection;

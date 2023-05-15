@@ -70,9 +70,14 @@ void MST::readFromFile(std::string FileName) {
 	else std::cout << "Plik nie zostal otworzony!\n";
 }
 
+void MST::generateGraph(int size, int density)
+{
+
+}
+
 void MST::algorithmPrim() {
 	if (verticesNotChecked.empty()) {
-		verticesChecked = verticesNotChecked;
+		std::copy(verticesChecked.begin(), verticesChecked.end(), std::back_inserter(verticesNotChecked));
 		verticesNotChecked.sort();
 		verticesChecked.clear();
 		edgesMST.clear();
@@ -326,4 +331,13 @@ void MST::displayMatrix() {
 		}
 		std::cout << std::endl;
 	}
+}
+
+MST::~MST()
+{
+	verticesChecked.clear();
+	verticesNotChecked.clear();
+	edgesCollection.clear();
+	edgesMST.clear();
+	while (!prioQueue.empty()) prioQueue.pop();
 }
