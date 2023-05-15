@@ -99,7 +99,6 @@ void MST::generateGraph(int size, int density)
 	std::list<int>::iterator itt;
 	while (edgesLeft) {
 		random = rand() % verticesNotChecked.size();
-		std::cout << random << std::endl;
 		std::list<int> exists;
 		
 		for (it = edgesCollection.begin(); it != edgesCollection.end(); it++) {
@@ -112,12 +111,9 @@ void MST::generateGraph(int size, int density)
 			int dest = 0;
 			exists.sort();
 			for (int e : exists) {
-				std::cout << e << " ";
 				if (dest != random && e != dest) break;
 				while (e == dest || dest == random) dest++;
 			}
-			std::cout << std::endl;
-			std::cout << dest << "\n\n";
 
 			e.weight = rand() % 100;
 			e.source = random;
