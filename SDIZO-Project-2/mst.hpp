@@ -50,6 +50,7 @@ public:
 	~MST();
 
 	void readFromFile(std::string FileName);
+	void readFromFileNew(std::string FileName);
 	void generateGraph(int size, int density);
 	void algorithmPrim();
 	void algorithmPrimMatrix();
@@ -57,6 +58,7 @@ public:
 	void displayMST();
 	void displayList();
 	void displayMatrix();
+	void displayMatrix2();
 
 private:
 	std::list<std::list<int>> neighborMatrix;

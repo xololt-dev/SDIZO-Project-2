@@ -70,6 +70,64 @@ void MST::readFromFile(std::string FileName) {
 	else std::cout << "Plik nie zostal otworzony!\n";
 }
 
+void MST::readFromFileNew(std::string FileName) {
+	std::fstream file;
+	file.open(FileName, std::ios::in);
+
+	if (file.good()) {
+		int edgesAmount = 0, vertexAmount = 0;
+		int temp = 0;
+		
+		// Iloœæ krawêdzi
+		file >> edgesAmount;
+
+		// Iloœæ wierzcho³ków
+		file >> vertexAmount;
+		std::list<int> sub_list;
+		for (int j = 0; j < vertexAmount; j++) {
+			sub_list.push_back(0);
+		}
+		for (int i = 0; i < vertexAmount; i++) {
+			neighborMatrix.push_back(sub_list);
+		}
+
+		Edge tempEdge;
+		std::list<std::list<int>>::iterator itr = neighborMatrix.begin();
+		std::list<int>::iterator itrSecond = itr->begin();
+		std::list<Neighbor>::iterator itrNeigh;
+		// int source, dest, weight;
+		// Zrobiæ dodawanie po jednym elem.
+		while (file >> tempEdge.source) {
+			file >> tempEdge.destination;
+			file >> tempEdge.weight;
+			itr = neighborMatrix.begin();
+			itrNeigh = neighborList.begin();
+			for (int i = 0; i < tempEdge.source; i++) {
+				itr++;
+				itrNeigh;
+			}
+			
+
+			itrSecond = itr->begin();
+			for (int i = 0; i < tempEdge.destination; i++) itrSecond++;
+			
+			*itrSecond = tempEdge.weight;
+
+			itr = neighborMatrix.begin();
+			for (int i = 0; i < tempEdge.destination; i++) {
+				itr++;
+			}
+			itrSecond = itr->begin();
+			for (int i = 0; i < tempEdge.source; i++) itrSecond++;
+
+			*itrSecond = tempEdge.weight;
+		}
+		// verticesNotChecked.sort();
+		file.close();
+	}
+	else std::cout << "Plik nie zostal otworzony!\n";
+}
+
 void MST::generateGraph(int size, int density)
 {	
 	if (!size || !density) return;
@@ -271,6 +329,42 @@ void MST::displayMST() {
 			weightTotal += e.weight;
 		}
 		std::cout << "Waga drzewa rozpinajacego: " << weightTotal << std::endl;
+	
+		// matrix
+		verticesChecked.sort();
+		std::list<int>::iterator it;
+		std::cout << "   ";
+		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+			std::cout << *it << " ";
+		}
+		std::cout << "\n";
+		std::cout << " |";
+		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+			std::cout << "--";
+		}
+		std::cout << "\n";
+		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
+			std::cout << *it << "| ";
+			std::list<int>::iterator its;
+			for (its = verticesChecked.begin(); its != verticesChecked.end(); its++) {
+				if (its != it) {
+					int exists = 0;
+					for (Edge e : edgesMST) {
+						if (e.source == *it && e.destination == *its) {
+							exists = 1;
+							break;
+						}
+						else if (e.destination == *it && e.source == *its) {
+							exists = 1;
+							break;
+						}
+					}
+					std::cout << exists << " ";
+				}
+				else std::cout << "0 ";
+			}
+			std::cout << "\n";
+		}
 	}
 }
 
@@ -381,6 +475,57 @@ void MST::displayMatrix() {
 		std::cout << std::endl;
 	}
 }
+
+void MST::displayMatrix2() {
+	if (neighborMatrix.empty()) std::cout << "Macierz jest pusta." << std::endl;
+	else {
+		int spacesNeeded = log10(neighborMatrix.size()) + 1;
+
+		// nested_list`s iterator(same type as nested_list)
+		// to iterate the nested_list
+		std::list<std::list<int> >::iterator outside = neighborMatrix.begin();
+		int i = 0;
+		for (int s = -1; s < spacesNeeded; s++) std::cout << " ";
+
+		while (outside != neighborMatrix.end()) {
+			std::cout << i++ << " ";
+			outside++;
+		}
+		std::cout << "\n";
+		
+		for (int s = 0; s < spacesNeeded; s++) std::cout << " ";
+		std::cout << "|";
+
+		i *= 2;
+		for (--i; i > 0; i--) std::cout << "-";
+		std::cout << "\n";
+
+		// Print the nested_list
+		for (outside = neighborMatrix.begin(); outside != neighborMatrix.end(); ++outside) {
+
+			std::cout << i++;
+			for (int s = 1; s < spacesNeeded; s++) std::cout << " ";
+			std::cout << "|";
+
+			// normal_list`s iterator(same type as temp_list)
+			// to iterate the normal_list
+			std::list<int>::iterator inside;
+
+			// pointer of each list one by one in nested list
+			// as loop goes on
+			std::list<int>& inside_pointer = *outside;
+
+			for (inside = inside_pointer.begin();
+				inside != inside_pointer.end();
+				inside++) {
+				std::cout << *inside << " ";
+			}
+			std::cout << "\n";
+		}
+		std::cout << "\n";
+	}
+}
+
 
 MST::~MST()
 {

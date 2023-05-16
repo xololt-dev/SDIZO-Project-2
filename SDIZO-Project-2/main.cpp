@@ -41,9 +41,9 @@ void menu_MST()
 		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
-			mst.readFromFile(fileName);
-			mst.displayList();
-			mst.displayMatrix();
+			mst.readFromFileNew(fileName);
+			// mst.displayList();
+			mst.displayMatrix2();
 			break;
 
 		case '2': //tutaj generowanie grafu
