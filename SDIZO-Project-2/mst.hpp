@@ -39,6 +39,11 @@ inline bool operator>(const Edge& lhs, const Edge& rhs) {
 	return (lhs.weight > rhs.weight);
 }
 
+struct Neighbor {
+	int weight;
+	int destination;
+};
+
 class MST {
 public:
 	// MST();
@@ -47,11 +52,16 @@ public:
 	void readFromFile(std::string FileName);
 	void generateGraph(int size, int density);
 	void algorithmPrim();
+	void algorithmPrimMatrix();
+	void algorithmPrimList();
 	void displayMST();
 	void displayList();
 	void displayMatrix();
 
 private:
+	std::list<std::list<int>> neighborMatrix;
+	std::list<Neighbor> neighborList;
+
 	std::list<int> verticesChecked;
 	std::list<int> verticesNotChecked;
 	std::list<Edge> edgesCollection;
