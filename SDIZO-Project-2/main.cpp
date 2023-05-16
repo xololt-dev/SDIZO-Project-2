@@ -32,6 +32,7 @@ void menu_MST()
 	char opt;
 	std::string fileName;
 	int amount, density;
+	std::list<std::list<int>> m;
 
 	do {
 		displaySubMenu("--- MST ---");
@@ -42,7 +43,7 @@ void menu_MST()
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
 			mst.readFromFileNew(fileName);
-			// mst.displayList();
+			mst.displayList2();
 			mst.displayMatrix2();
 			break;
 
@@ -61,8 +62,10 @@ void menu_MST()
 			break;
 
 		case '4': //tutaj algorytm Prima
-			mst.algorithmPrim();
-			mst.displayMST();
+			m = mst.algorithmPrimMatrix();
+			mst.displayMSTMatrix(m);
+			// mst.algorithmPrim();
+			// mst.displayMST();
 			break;
 
 		case '5':  //tutaj algorytm Kruskala
