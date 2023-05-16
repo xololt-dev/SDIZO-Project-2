@@ -10,7 +10,7 @@ struct Edge {
 	int destination;
 
 	inline bool operator==(const Edge& rhs) {
-		return (destination == rhs.destination && source == rhs.source && weight == rhs.weight);
+		return (((destination == rhs.destination && source == rhs.source) || (destination == rhs.source && source == rhs.destination)) && weight == rhs.weight);
 	}
 	inline bool operator!=(const Edge& rhs) {
 		return (destination != rhs.destination || source != rhs.source || weight != rhs.weight);
@@ -53,16 +53,20 @@ public:
 	void readFromFileNew(std::string FileName);
 	void generateGraph(int size, int density);
 	void algorithmPrim();
-	void algorithmPrimMatrix();
+	std::list<std::list<int>> algorithmPrimMatrix();
 	void algorithmPrimList();
 	void displayMST();
+	void displayMSTMatrix(std::list<std::list<int>>& matrix);
 	void displayList();
+	void displayList2();
 	void displayMatrix();
 	void displayMatrix2();
 
+	void addToMatrix(int src, int dst, int weight, std::list<std::list<int>>& matrix);
+
 private:
 	std::list<std::list<int>> neighborMatrix;
-	std::list<Neighbor> neighborList;
+	std::list<std::list<Neighbor>> neighborList;
 
 	std::list<int> verticesChecked;
 	std::list<int> verticesNotChecked;
