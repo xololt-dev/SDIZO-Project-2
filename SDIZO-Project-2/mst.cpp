@@ -620,15 +620,23 @@ std::list<std::list<Neighbor>> MST::algorithmPrimList() {
 				if (vertexEdgesToAdd == -1) {
 					vertexEdgesToAdd = i;
 				}
-				else if (i == toAdd.destination) {
-					vertexEdgesToAdd = toAdd.destination;
-				}
 				numberOfVertex++;
+			}
+			else if (i == toAdd.destination) {
+				vertexEdgesToAdd = toAdd.destination;
 			}
 			outside++;
 		}
 		displayMSTList(outputList);
 		std::cout << vertexEdgesToAdd << " "<< numberOfVertex << "\n";
+
+		std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
+		while (!prioQueue.empty()) {
+			std::cout << prioQueue.top().source << " " << prioQueue.top().destination << " " << prioQueue.top().weight << "\n";
+			prioQueue.pop();
+		}
+		prioQueue = tempQueue;
+
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
