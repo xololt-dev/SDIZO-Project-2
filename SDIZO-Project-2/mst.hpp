@@ -69,7 +69,6 @@ public:
 private:
 	std::list<std::list<int>> neighborMatrix;
 	std::list<std::list<Neighbor>> neighborList;
-
 	std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> prioQueue;
 
 	std::list<int> verticesChecked;

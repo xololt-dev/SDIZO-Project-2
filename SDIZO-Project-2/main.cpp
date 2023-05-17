@@ -55,9 +55,9 @@ void menu_MST()
 			break;
 
 		case '3': //tutaj wyœwietlanie
-			mst.displayMST();
-			mst.displayList();
-			mst.displayMatrix();
+			// mst.displayMST();
+			mst.displayList2();
+			mst.displayMatrix2();
 			break;
 
 		case '4': {//tutaj algorytm Prima
