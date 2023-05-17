@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 
 // za³adowaæ liczbê krawêdzi, liczbê wierzcho³ków i ka¿d¹ krawêdŸ
 void MST::readFromFile(std::string FileName) {
@@ -78,6 +79,14 @@ void MST::readFromFileNew(std::string FileName) {
 		int edgesAmount = 0, vertexAmount = 0;
 		int temp = 0;
 		
+		verticesChecked.clear();
+		verticesNotChecked.clear();
+		edgesCollection.clear();
+		edgesMST.clear();
+		while (!prioQueue.empty()) prioQueue.pop();
+		if (!neighborList.empty()) neighborList.clear();
+		if (!neighborMatrix.empty()) neighborMatrix.clear();
+
 		// Iloœæ krawêdzi
 		file >> edgesAmount;
 
@@ -331,8 +340,8 @@ void MST::algorithmPrim() {
 }
 
 std::list<std::list<int>> MST::algorithmPrimMatrix() {
-	if (!edgesMST.empty()) {
-		edgesMST.clear();
+	while (!prioQueue.empty()) {
+		prioQueue.pop();
 	}
 
 	int numberOfVertex = neighborMatrix.size();
@@ -373,13 +382,6 @@ std::list<std::list<int>> MST::algorithmPrimMatrix() {
 						temp.weight = *inside;
 
 						// jesli jest w kopcu
-						/*
-						for (beginS = edgesMST.begin(); beginS != edgesMST.end(); beginS++) {
-							if (*beginS == temp) {
-								doWstawienia = 0;
-								break;
-							}
-						}*/
 						Edge e;
 						std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
 						while (!prioQueue.empty()) {
@@ -491,6 +493,152 @@ std::list<std::list<int>> MST::algorithmPrimMatrix() {
 	return outputMatrix;
 }
 
+std::list<std::list<Neighbor>> MST::algorithmPrimList() {
+	while (!prioQueue.empty()) {
+		prioQueue.pop();
+	}
+
+	auto start = std::chrono::system_clock::now();
+	int numberOfVertex = neighborList.size();
+	int vertexEdgesToAdd = 0;
+	std::list<Neighbor> sub_list = { Neighbor{ -1, -1 } };
+	std::list<std::list<Neighbor>> outputList;
+	outputList.clear();
+
+	for (int i = 0; i < numberOfVertex; i++) {
+		outputList.push_back(sub_list);
+	}
+
+	numberOfVertex--;
+
+	// dopóki nie sprawdzimy ka¿dego wierzcho³ka
+	while (numberOfVertex) {
+		std::list<std::list<Neighbor>>::iterator outside = neighborList.begin();
+
+		// wype³nienie kolejki krawêdziami
+		int i = 0;
+		for (outside = neighborList.begin(); outside != neighborList.end(); ++outside) {
+			std::list<Neighbor>::iterator inside;
+
+			// jeœli jest to wierzcho³ek który chcemy dodaæ
+			if (i == vertexEdgesToAdd) {
+				// int j = 0;
+				Edge temp;
+				temp.source = i;
+				for (inside = outside->begin(); inside != outside->end(); inside++) {
+					// jesli po³¹czenie
+					if (inside->weight != -1) {
+						bool doWstawienia = 1;
+						std::list<Edge>::iterator beginS;
+						temp.destination = inside->destination;
+						temp.weight = inside->weight;
+
+						// jesli bylo brane pod uwage
+						std::list<std::list<Neighbor>>::iterator outerIter = outputList.begin();
+						int src = temp.source;
+						int dst = temp.destination;
+						for (int i = 0; i < src; i++) outerIter++;
+
+						std::list<Neighbor>::iterator someiterInner = outerIter->begin();
+
+						for (someiterInner; someiterInner != outerIter->end(); someiterInner++) {
+							if (someiterInner->destination == dst) {
+								doWstawienia = 0;
+								break;
+							}
+						}
+
+						if (doWstawienia) {
+							// jesli jest w kopcu
+							Edge e;
+							std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
+							while (!prioQueue.empty()) {
+								e = prioQueue.top();
+								prioQueue.pop();
+								if (temp == e) {
+									doWstawienia = 0;
+									break;
+								}
+							}
+							prioQueue = tempQueue;
+						}
+
+						if (doWstawienia) prioQueue.push(temp);
+					}
+				}
+				break;
+			}
+			i++;
+		}
+
+		// wybranie krawêdzi
+		bool petla = 0;
+		int src, dest;
+		Edge toAdd;
+		do {
+			toAdd = prioQueue.top();
+			prioQueue.pop();
+
+			std::list<std::list<Neighbor>>::iterator outsideSecond = outputList.begin();
+			src = toAdd.source;
+			dest = toAdd.destination;
+			petla = 0;
+			outside = outputList.begin();
+
+			for (int i = 0; i < src; i++) outside++;
+			for (int i = 0; i < dest; i++) outsideSecond++;
+
+			std::list<Neighbor>::iterator inside = outside->begin();
+			std::list<Neighbor>::iterator insideS = outsideSecond->begin();
+
+			for (inside; inside != outside->end(); inside++) {
+				for (insideS; insideS != outsideSecond->end(); insideS++) {
+					if (inside->destination == insideS->destination && inside->destination != -1) {
+						petla = 1;
+						break;
+					}
+				}
+
+				if (petla) {
+					break;
+				}
+				else {
+					insideS = outsideSecond->begin();
+				}
+			}
+		} while (petla);
+
+		// dodaj do matrycy
+		addToList(toAdd.source, toAdd.destination, toAdd.weight, outputList);
+
+		outside = outputList.begin();
+
+		vertexEdgesToAdd = -1;
+		numberOfVertex = 0;
+		for (int i = 0; i < outputList.size(); i++) {
+			if (outside->front().destination == -1) {
+				if (vertexEdgesToAdd == -1) {
+					vertexEdgesToAdd = i;
+				}
+				else if (i == toAdd.destination) {
+					vertexEdgesToAdd = toAdd.destination;
+				}
+				numberOfVertex++;
+			}
+			outside++;
+		}
+		displayMSTList(outputList);
+		std::cout << vertexEdgesToAdd << " "<< numberOfVertex << "\n";
+	}
+	while (!prioQueue.empty()) prioQueue.pop();
+
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = end - start;
+	std::cout << elapsed.count() << '\n';
+
+	return outputList;
+}
+
 void MST::displayMST() {
 	if (edgesMST.empty()) std::cout << "Lista MST jest pusta." << std::endl;
 	else {
@@ -583,6 +731,25 @@ void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
 			std::cout << "\n";
 		}
 		std::cout << "\n";
+	}
+}
+
+void MST::displayMSTList(std::list<std::list<Neighbor>>& list) {
+	if (list.empty()) std::cout << "Lista jest pusta." << std::endl;
+	else {
+		std::list<std::list<Neighbor>>::iterator it;
+		std::list<Neighbor>::iterator itN;
+		std::cout << "u->[v|w]\n";
+		int i = 0;
+		for (it = list.begin(); it != list.end(); it++) {
+			std::cout << i++;
+
+			for (Neighbor n : *it) {
+				std::cout << "->[" << n.destination << "|" << n.weight << "]";
+			}
+			std::cout << "\n";
+		}
+		std::cout << std::endl;
 	}
 }
 
@@ -787,4 +954,24 @@ void MST::addToMatrix(int src, int dst, int weight, std::list<std::list<int>>& m
 
 	for (int i = 0; i < src; i++) inside++;
 	*inside = weight;
+}
+
+void MST::addToList(int src, int dst, int weight, std::list<std::list<Neighbor>>& list) {
+	std::list<std::list<Neighbor>>::iterator outside = list.begin();
+
+	if (src > dst) {
+		int temp = src;
+		src = dst;
+		dst = temp;
+	}
+
+	for (int i = 0; i < src; i++) outside++;
+
+	if (outside->front().destination == -1) outside->front() = Neighbor{ weight, dst };
+	else outside->push_back(Neighbor{ weight, dst });
+
+	for (int i = 0; i < (dst - src); i++) outside++;
+
+	if (outside->front().destination == -1) outside->front() = Neighbor{ weight, src };
+	else outside->push_back(Neighbor{ weight, src });
 }

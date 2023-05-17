@@ -32,7 +32,6 @@ void menu_MST()
 	char opt;
 	std::string fileName;
 	int amount, density;
-	std::list<std::list<int>> m;
 
 	do {
 		displaySubMenu("--- MST ---");
@@ -61,20 +60,21 @@ void menu_MST()
 			mst.displayMatrix();
 			break;
 
-		case '4': //tutaj algorytm Prima
-			m = mst.algorithmPrimMatrix();
+		case '4': {//tutaj algorytm Prima
+			std::list<std::list<int>> m = mst.algorithmPrimMatrix();
 			mst.displayMSTMatrix(m);
-			// mst.algorithmPrim();
-			// mst.displayMST();
-			break;
+			std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
+			mst.displayMSTList(l);
 
-		case '5':  //tutaj algorytm Kruskala
-			std::cout << "Podaj ilosc elementów tablicy:";
+			break;
+		}
+		case '5': {//tutaj algorytm Kruskala
+			//std::cout << "Podaj ilosc elementów tablicy:";
 			// std::cin >> value;
 			// myTab.generateTable(value);
 			// myTab.display();
 			break;
-
+		}
 		}
 	} while (opt != '0');
 }

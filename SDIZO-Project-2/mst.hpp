@@ -54,23 +54,26 @@ public:
 	void generateGraph(int size, int density);
 	void algorithmPrim();
 	std::list<std::list<int>> algorithmPrimMatrix();
-	void algorithmPrimList();
+	std::list<std::list<Neighbor>> algorithmPrimList();
 	void displayMST();
 	void displayMSTMatrix(std::list<std::list<int>>& matrix);
+	void displayMSTList(std::list<std::list<Neighbor>>& list);
 	void displayList();
 	void displayList2();
 	void displayMatrix();
 	void displayMatrix2();
 
 	void addToMatrix(int src, int dst, int weight, std::list<std::list<int>>& matrix);
+	void addToList(int src, int dst, int weight, std::list<std::list<Neighbor>>& list);
 
 private:
 	std::list<std::list<int>> neighborMatrix;
 	std::list<std::list<Neighbor>> neighborList;
 
+	std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> prioQueue;
+
 	std::list<int> verticesChecked;
 	std::list<int> verticesNotChecked;
 	std::list<Edge> edgesCollection;
 	std::list<Edge> edgesMST;
-	std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> prioQueue;
 };
