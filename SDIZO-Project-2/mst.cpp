@@ -258,7 +258,7 @@ void MST::generateGraphNew(int size, int density)
 		if (i) {
 			e.source = i;
 			e.destination = rand() % i;
-			e.weight = rand() % 10;
+			e.weight = 1 + rand() % 9;
 
 			outsideL = neighborList.begin();
 			outsideM = neighborMatrix.begin();
@@ -300,7 +300,7 @@ void MST::generateGraphNew(int size, int density)
 		else {
 			e.source = i;
 			e.destination = i + 1;
-			e.weight = rand() % 10;
+			e.weight = 1 + rand() % 9;
 
 			outsideL = neighborList.begin();
 			outsideM = neighborMatrix.begin();
@@ -372,7 +372,7 @@ void MST::generateGraphNew(int size, int density)
 		for (int i = 0; i < dest; i++) itt++;
 
 		dest = *itt;
-		int weight = rand() % 10;
+		int weight = 1 + rand() % 9;
 
 		// wstawianie
 		if (outsideL->begin()->destination != -1) {
