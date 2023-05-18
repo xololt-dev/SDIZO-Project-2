@@ -52,6 +52,7 @@ public:
 	void readFromFile(std::string FileName);
 	void readFromFileNew(std::string FileName);
 	void generateGraph(int size, int density);
+	void generateGraphNew(int size, int density);
 	void algorithmPrim();
 	std::list<std::list<int>> algorithmPrimMatrix();
 	std::list<std::list<Neighbor>> algorithmPrimList();

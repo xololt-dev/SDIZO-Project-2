@@ -212,6 +212,60 @@ void MST::generateGraph(int size, int density)
 	} 
 }
 
+void MST::generateGraphNew(int size, int density)
+{
+	if (!size || !density) return;
+	// cleanup
+	verticesNotChecked.clear();
+	verticesChecked.clear();
+	edgesMST.clear();
+	edgesCollection.clear();
+
+	srand(time(NULL));
+
+	int random, edgesLeft = size * (size - 1) * density / 200;
+	Edge e;
+	for (int i = 0; i < size; i++) {
+		verticesNotChecked.push_back(i);
+		if (i) {
+			random = rand() % (verticesNotChecked.size() - 1);
+			e.weight = rand() % 100;
+			e.source = i;
+			e.destination = random;
+			edgesCollection.push_back(e);
+			edgesLeft--;
+		}
+	}
+
+	std::list<Edge>::iterator it = edgesCollection.begin();
+	std::list<int>::iterator itt;
+	while (edgesLeft) {
+		random = rand() % verticesNotChecked.size();
+		std::list<int> exists;
+
+		for (it = edgesCollection.begin(); it != edgesCollection.end(); it++) {
+			if (it->source == random) {
+				exists.push_back(it->destination);
+			}
+			else if (it->destination == random) exists.push_back(it->source);
+		}
+		if (!(exists.size() == verticesNotChecked.size() - 1)) {
+			int dest = 0;
+			exists.sort();
+			for (int e : exists) {
+				if (dest != random && e != dest) break;
+				while (e == dest || dest == random) dest++;
+			}
+
+			e.weight = rand() % 100;
+			e.source = random;
+			e.destination = dest;
+			edgesCollection.push_back(e);
+			edgesLeft--;
+		}
+	}
+}
+
 void MST::algorithmPrim() {
 	if (verticesNotChecked.empty()) {
 		std::copy(verticesChecked.begin(), verticesChecked.end(), std::back_inserter(verticesNotChecked));
@@ -692,6 +746,7 @@ void MST::displayMST() {
 void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
 	if (matrix.empty()) std::cout << "Macierz jest pusta." << std::endl;
 	else {
+		int lengthMST = 0;
 		int spacesNeeded = log10(neighborMatrix.size()) + 1;
 
 		// nested_list`s iterator(same type as nested_list)
@@ -729,16 +784,18 @@ void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
 
 			for (inside = inside_pointer.begin(); inside != inside_pointer.end(); inside++) {
 				std::cout << *inside << " ";
+				lengthMST += *inside;
 			}
 			std::cout << "\n";
 		}
-		std::cout << "\n";
+		std::cout << "\nRozmiar drzewa: " << lengthMST/2 << "\n\n";
 	}
 }
 
 void MST::displayMSTList(std::list<std::list<Neighbor>>& list) {
 	if (list.empty()) std::cout << "Lista jest pusta." << std::endl;
 	else {
+		int lengthMST = 0;
 		std::list<std::list<Neighbor>>::iterator it;
 		std::list<Neighbor>::iterator itN;
 		std::cout << "u->[v|w]\n";
@@ -748,10 +805,11 @@ void MST::displayMSTList(std::list<std::list<Neighbor>>& list) {
 
 			for (Neighbor n : *it) {
 				std::cout << "->[" << n.destination << "|" << n.weight << "]";
+				lengthMST += n.weight;
 			}
 			std::cout << "\n";
 		}
-		std::cout << std::endl;
+		std::cout << "\nRozmiar drzewa: " << lengthMST / 2 << "\n\n";
 	}
 }
 
