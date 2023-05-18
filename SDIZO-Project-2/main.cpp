@@ -51,7 +51,8 @@ void menu_MST()
 			std::cin >> amount;
 			std::cout << " Podaj gestosc (calkowite %): ";
 			std::cin >> density;
-			mst.generateGraph(amount, density);
+			// mst.generateGraph(amount, density);
+			mst.generateGraphNew(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
