@@ -220,11 +220,29 @@ void MST::generateGraphNew(int size, int density)
 	verticesChecked.clear();
 	edgesMST.clear();
 	edgesCollection.clear();
+	while (!prioQueue.empty()) prioQueue.pop();
+	neighborList.clear();
+	neighborMatrix.clear();
 
 	srand(time(NULL));
 
+	std::list<int> sub_list;
+	for (int j = 0; j < size; j++) {
+		sub_list.push_back(0);
+	}
+	for (int i = 0; i < size; i++) {
+		neighborMatrix.push_back(sub_list);
+		std::list<Neighbor> temp = { Neighbor{ -1, -1 } };
+		neighborList.push_back(temp);
+	}
+
 	int random, edgesLeft = size * (size - 1) * density / 200;
+	std::list<std::list<Neighbor>>::iterator outsideL = neighborList.begin();
+	std::list<std::list<int>>::iterator outsideM = neighborMatrix.begin();
+	std::list<Neighbor>::iterator insideL;
+	std::list<int>::iterator insideM;
 	Edge e;
+	/*
 	for (int i = 0; i < size; i++) {
 		verticesNotChecked.push_back(i);
 		if (i) {
@@ -235,34 +253,157 @@ void MST::generateGraphNew(int size, int density)
 			edgesCollection.push_back(e);
 			edgesLeft--;
 		}
+	}*/
+	for (int i = 0; i < size - 1; i++) {
+		if (i) {
+			e.source = i;
+			e.destination = rand() % i;
+			e.weight = rand() % 10;
+
+			outsideL = neighborList.begin();
+			outsideM = neighborMatrix.begin();
+			for (int j = 0; j < e.destination; j++) {
+				outsideL++;
+				outsideM++;
+			}
+
+			if (outsideL->begin()->destination == -1) {
+				*(outsideL->begin()) = Neighbor{ e.weight, e.source };
+			}
+			else {
+				outsideL->push_back(Neighbor{ e.weight, e.source });
+			}
+
+			insideM = outsideM->begin();
+			for (int j = 0; j < e.source; j++) insideM++;
+
+			*insideM = e.weight;
+
+			for (int j = 0; j < (e.source - e.destination); j++) {
+				outsideL++;
+				outsideM++;
+			}
+
+			if (outsideL->begin()->destination == -1) {
+				*(outsideL->begin()) = Neighbor{ e.weight, e.destination };
+			}
+			else {
+				outsideL->push_back(Neighbor{ e.weight, e.destination });
+			}
+
+			insideM = outsideM->begin();
+			for (int j = 0; j < e.destination; j++) insideM++;
+
+			*insideM = e.weight;
+			edgesLeft--;
+		}
+		else {
+			e.source = i;
+			e.destination = i + 1;
+			e.weight = rand() % 10;
+
+			outsideL = neighborList.begin();
+			outsideM = neighborMatrix.begin();
+			for (int j = 0; j < e.source; j++) {
+				outsideL++;
+				outsideM++;
+			}
+
+			if (outsideL->begin()->destination == -1) {
+				*(outsideL->begin()) = Neighbor{ e.weight, e.destination };
+			}
+			else {
+				outsideL->push_back(Neighbor{ e.weight, e.destination });
+			}
+
+			insideM = outsideM->begin();
+			for (int j = 0; j < e.destination; j++) insideM++;
+
+			*insideM = e.weight;
+
+			outsideL++;
+			
+			if (outsideL->begin()->destination == -1) {
+				*(outsideL->begin()) = Neighbor{ e.weight, e.source };
+			}
+			else {
+				outsideL->push_back(Neighbor{ e.weight, e.source });
+			}
+
+			outsideM++;
+			insideM = outsideM->begin();
+			for (int j = 0; j < e.source; j++) insideM++;
+			
+			*insideM = e.weight;
+
+			edgesLeft--;
+			i++;
+		}		
 	}
+
+	// ta czêœæ nie dokoñczona
 
 	std::list<Edge>::iterator it = edgesCollection.begin();
 	std::list<int>::iterator itt;
 	while (edgesLeft) {
-		random = rand() % verticesNotChecked.size();
+		// wyznaczenie pierwszego wierzcho³ka
+		do {
+			random = rand() % size;
+			outsideL = neighborList.begin();
+			for (int i = 0; i < random; i++) outsideL++;
+		} while (outsideL->size() == size - 1);
+
 		std::list<int> exists;
-
-		for (it = edgesCollection.begin(); it != edgesCollection.end(); it++) {
-			if (it->source == random) {
-				exists.push_back(it->destination);
-			}
-			else if (it->destination == random) exists.push_back(it->source);
+		for (int i = 0; i < size; i++) {
+			if (i != random) exists.push_back(i);
 		}
-		if (!(exists.size() == verticesNotChecked.size() - 1)) {
-			int dest = 0;
-			exists.sort();
-			for (int e : exists) {
-				if (dest != random && e != dest) break;
-				while (e == dest || dest == random) dest++;
-			}
-
-			e.weight = rand() % 100;
-			e.source = random;
-			e.destination = dest;
-			edgesCollection.push_back(e);
-			edgesLeft--;
+		
+		insideL = outsideL->begin();
+		
+		// zostawiæ tylko mo¿liwoœci do wybrania
+		while (insideL != outsideL->end()) {
+			exists.remove(insideL->destination);
+			insideL++;
 		}
+
+		// wyznaczenie celu
+		int dest = rand() % exists.size();
+		itt = exists.begin();
+		for (int i = 0; i < dest; i++) itt++;
+
+		dest = *itt;
+		int weight = rand() % 10;
+
+		// wstawianie
+		if (outsideL->begin()->destination != -1) {
+			outsideL->push_back(Neighbor{ weight, dest });
+		}
+		else {
+			*(outsideL->begin()) = Neighbor{ weight, dest };
+		}
+		outsideM = neighborMatrix.begin();
+		for (int i = 0; i < random; i++) outsideM++;
+		insideM = outsideM->begin();
+		for (int i = 0; i < dest; i++) insideM++;
+		*insideM = weight;
+
+		outsideL = neighborList.begin();
+		outsideM = neighborMatrix.begin();
+		for (int i = 0; i < dest; i++) {
+			outsideL++;
+			outsideM++;
+		}
+		if (outsideL->begin()->destination != -1) {
+			outsideL->push_back(Neighbor{ weight, random });
+		}
+		else {
+			*(outsideL->begin()) = Neighbor{ weight, random };
+		}
+		insideM = outsideM->begin();
+		for (int i = 0; i < random; i++) insideM++;
+		*insideM = weight;
+
+		edgesLeft--;
 	}
 }
 
@@ -749,8 +890,6 @@ void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
 		int lengthMST = 0;
 		int spacesNeeded = log10(neighborMatrix.size()) + 1;
 
-		// nested_list`s iterator(same type as nested_list)
-		// to iterate the nested_list
 		std::list<std::list<int>>::iterator outside = matrix.begin();
 		int i = 0;
 		for (int s = -1; s < spacesNeeded; s++) std::cout << " ";
@@ -768,18 +907,13 @@ void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
 		for (--i; i > 0; i--) std::cout << "-";
 		std::cout << "\n";
 
-		// Print the nested_list
 		for (outside = matrix.begin(); outside != matrix.end(); ++outside) {
 			std::cout << i++;
 			for (int s = 1; s < spacesNeeded; s++) std::cout << " ";
 			std::cout << "|";
 
-			// normal_list`s iterator(same type as temp_list)
-			// to iterate the normal_list
 			std::list<int>::iterator inside;
 
-			// pointer of each list one by one in nested list
-			// as loop goes on
 			std::list<int>& inside_pointer = *outside;
 
 			for (inside = inside_pointer.begin(); inside != inside_pointer.end(); inside++) {
