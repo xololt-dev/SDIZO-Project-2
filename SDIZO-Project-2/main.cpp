@@ -2,15 +2,16 @@
 #include <conio.h>
 #include <string>
 
+#include "graph.hpp"
 #include "mst.hpp"
 
 void displaySubMenu(std::string info);
 void displayMainMenu();
 
 MST mst;
+Graph graph;
 
-int main()
-{
+int main() {
 	displayMainMenu();
 	return 0;
 }
@@ -27,8 +28,7 @@ void displaySubMenu(std::string info) {
 	std::cout << "Podaj opcje:";
 }
 
-void menu_MST()
-{
+void menu_MST() {
 	char opt;
 	std::string fileName;
 	int amount, density;
@@ -41,9 +41,12 @@ void menu_MST()
 		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
-			mst.readFromFileNew(fileName);
-			mst.displayList2();
-			mst.displayMatrix2();
+			// mst.readFromFile(fileName);
+			// mst.displayList();
+			// mst.displayMatrix();
+			graph.readFromFile(fileName);
+			graph.displayList();
+			graph.displayMatrix();
 			break;
 
 		case '2': //tutaj generowanie grafu
@@ -52,20 +55,22 @@ void menu_MST()
 			std::cout << " Podaj gestosc (calkowite %): ";
 			std::cin >> density;
 			// mst.generateGraph(amount, density);
-			mst.generateGraphNew(amount, density);
+			mst.generateGraph(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
 			// mst.displayMST();
-			mst.displayList2();
-			mst.displayMatrix2();
+			mst.displayList();
+			mst.displayMatrix();
 			break;
 
 		case '4': {//tutaj algorytm Prima
-			std::list<std::list<int>> m = mst.algorithmPrimMatrix();
-			mst.displayMSTMatrix(m);
-			std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
-			mst.displayMSTList(l);
+			graph.algorithmPrimListN();
+			graph.displayMSTList();
+			//std::list<std::list<int>> m = mst.algorithmPrimMatrix();
+			//mst.displayMSTMatrix(m);
+			//std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
+			//mst.displayMSTList(l);
 
 			break;
 		}
