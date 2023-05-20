@@ -1,19 +1,17 @@
 // Minimal Spanning Tree
 // Kruskal
 // Prim
+
+// Prim mo¿e inny sposób na liczenie kroków do koñca bêdzie szybszy
+// Poprawiæ macierz na tablicê[][]
 #include "mst.hpp"
 
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <chrono>
 
 MST::~MST()
 {
-	verticesChecked.clear();
-	verticesNotChecked.clear();
-	edgesCollection.clear();
-	edgesMST.clear();
 	while (!prioQueue.empty()) prioQueue.pop();
 	neighborMatrix.clear();
 	neighborList.clear();
@@ -27,73 +25,7 @@ void MST::readFromFile(std::string FileName) {
 	if (file.good()) {
 		int edgesAmount = 0, vertexAmount = 0;
 		int temp = 0;
-
-
-		verticesChecked.clear();
-		verticesNotChecked.clear();
-		edgesCollection.clear();
-		edgesMST.clear();
-		while (!prioQueue.empty()) prioQueue.pop();
-
-		// Iloœæ krawêdzi
-		file >> edgesAmount;
-
-		// Iloœæ wierzcho³ków
-		file >> vertexAmount;
-
-
-		Edge tempEdge;
-		// Zrobiæ dodawanie po jednym elem.
-		while (file >> temp) {
-			tempEdge.source = temp;
-
-			if (verticesNotChecked.size() < vertexAmount) {
-				bool dodaj = 1;
-				for (auto const& i : verticesNotChecked) {
-					if (i == temp) {
-						dodaj = 0;
-						break;
-					}
-				}
-				if (!verticesNotChecked.size() || dodaj) verticesNotChecked.push_back(temp);
-			}
-
-			file >> temp;
-			tempEdge.destination = temp;
-			if (verticesNotChecked.size() < vertexAmount) {
-				bool dodaj = 1;
-				for (auto const& i : verticesNotChecked) {
-					if (i == temp) {
-						dodaj = 0;
-						break;
-					}
-				}
-				if (dodaj) verticesNotChecked.push_back(temp);
-			}
-
-			file >> temp;
-			tempEdge.weight = temp;
-
-			edgesCollection.push_back(tempEdge);
-		}
-		verticesNotChecked.sort();
-		file.close();
-	}
-	else std::cout << "Plik nie zostal otworzony!\n";
-}
-
-void MST::readFromFileNew(std::string FileName) {
-	std::fstream file;
-	file.open(FileName, std::ios::in);
-
-	if (file.good()) {
-		int edgesAmount = 0, vertexAmount = 0;
-		int temp = 0;
 		
-		verticesChecked.clear();
-		verticesNotChecked.clear();
-		edgesCollection.clear();
-		edgesMST.clear();
 		while (!prioQueue.empty()) prioQueue.pop();
 		if (!neighborList.empty()) neighborList.clear();
 		if (!neighborMatrix.empty()) neighborMatrix.clear();
@@ -109,9 +41,10 @@ void MST::readFromFileNew(std::string FileName) {
 		}
 		for (int i = 0; i < vertexAmount; i++) {
 			neighborMatrix.push_back(sub_list);
-			std::list<Neighbor> temp = { Neighbor{-1, -1 } };
+			std::list<Neighbor> temp = { Neighbor{ -1, -1 } };
 			neighborList.push_back(temp);
 		}
+		myList.generateEmpty(vertexAmount);
 
 		Edge tempEdge;
 		std::list<std::list<int>>::iterator itr = neighborMatrix.begin();
@@ -158,95 +91,39 @@ void MST::readFromFileNew(std::string FileName) {
 	else std::cout << "Plik nie zostal otworzony!\n";
 }
 
-void MST::generateGraph(int size, int density)
-{	
-	if (!size || !density) return;
-	// cleanup
-	verticesNotChecked.clear();
-	verticesChecked.clear();
-	edgesMST.clear();
-	edgesCollection.clear();
-
-	srand(time(NULL));
-
-	int random, edgesLeft = size * (size - 1) * density / 200;
-	Edge e;
-	for (int i = 0; i < size; i++) {
-		verticesNotChecked.push_back(i);
-		if (i) {
-			random = rand()%(verticesNotChecked.size() - 1);
-			e.weight = rand() % 100;
-			e.source = i;
-			e.destination = random;
-			edgesCollection.push_back(e);
-			edgesLeft--;
-		}
-	}
-
-	std::list<Edge>::iterator it = edgesCollection.begin();
-	std::list<int>::iterator itt;
-	while (edgesLeft) {
-		random = rand() % verticesNotChecked.size();
-		std::list<int> exists;
-		
-		for (it = edgesCollection.begin(); it != edgesCollection.end(); it++) {
-			if (it->source == random) {
-				exists.push_back(it->destination);
-			}
-			else if (it->destination == random) exists.push_back(it->source);
-		}
-		if (!(exists.size() == verticesNotChecked.size() - 1)) {
-			int dest = 0;
-			exists.sort();
-			for (int e : exists) {
-				if (dest != random && e != dest) break;
-				while (e == dest || dest == random) dest++;
-			}
-
-			e.weight = rand() % 100;
-			e.source = random;
-			e.destination = dest;
-			edgesCollection.push_back(e);
-			edgesLeft--;
-		}		
-	} 
-}
-
-void MST::generateGraphNew(int size, int density)
+void MST::generateGraph(int sideLength, int density)
 {
-	if (!size || !density) return;
+	if (!sideLength || !density) return;
 	// cleanup
-	verticesNotChecked.clear();
-	verticesChecked.clear();
-	edgesMST.clear();
-	edgesCollection.clear();
 	while (!prioQueue.empty()) prioQueue.pop();
 	neighborList.clear();
 	neighborMatrix.clear();
 
+	int randValue = 1000;
+
 	srand(time(NULL));
 
 	std::list<int> sub_list;
-	for (int j = 0; j < size; j++) {
+	for (int j = 0; j < sideLength; j++) {
 		sub_list.push_back(0);
 	}
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < sideLength; i++) {
 		neighborMatrix.push_back(sub_list);
 		std::list<Neighbor> temp = { Neighbor{ -1, -1 } };
 		neighborList.push_back(temp);
 	}
 
-	int random, edgesLeft = size * (size - 1) * density / 200;
+	int random, edgesLeft = sideLength * (sideLength - 1) * density / 200;
 	std::list<std::list<Neighbor>>::iterator outsideL = neighborList.begin();
 	std::list<std::list<int>>::iterator outsideM = neighborMatrix.begin();
 	std::list<Neighbor>::iterator insideL;
 	std::list<int>::iterator insideM;
 	Edge e;
 	/*
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < sideLength; i++) {
 		verticesNotChecked.push_back(i);
 		if (i) {
-			random = rand() % (verticesNotChecked.size() - 1);
+			random = rand() % (verticesNotChecked.sideLength() - 1);
 			e.weight = rand() % 100;
 			e.source = i;
 			e.destination = random;
@@ -254,11 +131,11 @@ void MST::generateGraphNew(int size, int density)
 			edgesLeft--;
 		}
 	}*/
-	for (int i = 0; i < size - 1; i++) {
+	for (int i = 0; i < sideLength - 1; i++) {
 		if (i) {
 			e.source = i;
 			e.destination = rand() % i;
-			e.weight = 1 + rand() % 9;
+			e.weight = 1 + rand() % randValue;
 
 			outsideL = neighborList.begin();
 			outsideM = neighborMatrix.begin();
@@ -300,7 +177,7 @@ void MST::generateGraphNew(int size, int density)
 		else {
 			e.source = i;
 			e.destination = i + 1;
-			e.weight = 1 + rand() % 9;
+			e.weight = 1 + rand() % randValue;
 
 			outsideL = neighborList.begin();
 			outsideM = neighborMatrix.begin();
@@ -343,18 +220,17 @@ void MST::generateGraphNew(int size, int density)
 
 	// ta czêœæ nie dokoñczona
 
-	std::list<Edge>::iterator it = edgesCollection.begin();
 	std::list<int>::iterator itt;
 	while (edgesLeft) {
 		// wyznaczenie pierwszego wierzcho³ka
 		do {
-			random = rand() % size;
+			random = rand() % sideLength;
 			outsideL = neighborList.begin();
 			for (int i = 0; i < random; i++) outsideL++;
-		} while (outsideL->size() == size - 1);
+		} while (outsideL->size() == sideLength - 1);
 
 		std::list<int> exists;
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < sideLength; i++) {
 			if (i != random) exists.push_back(i);
 		}
 		
@@ -372,7 +248,7 @@ void MST::generateGraphNew(int size, int density)
 		for (int i = 0; i < dest; i++) itt++;
 
 		dest = *itt;
-		int weight = 1 + rand() % 9;
+		int weight = 1 + rand() % randValue;
 
 		// wstawianie
 		if (outsideL->begin()->destination != -1) {
@@ -407,150 +283,12 @@ void MST::generateGraphNew(int size, int density)
 	}
 }
 
-void MST::algorithmPrim() {
-	if (verticesNotChecked.empty()) {
-		std::copy(verticesChecked.begin(), verticesChecked.end(), std::back_inserter(verticesNotChecked));
-		verticesNotChecked.sort();
-		verticesChecked.clear();
-		edgesMST.clear();
-	}
-	int numberOfVertex = verticesNotChecked.size() - 1;
-	int vertexID = verticesNotChecked.front();
-	std::list<int>::iterator begin = verticesNotChecked.begin();
-	std::list<Edge>::iterator beginE = edgesCollection.begin();
-	Edge temp;
-
-	// przenoszenie wierzcho³ków z not check do check
-	verticesChecked.push_back(vertexID);
-	for (begin = verticesNotChecked.begin(); begin != verticesNotChecked.end(); begin++) {
-		if (*begin == vertexID) {
-			verticesNotChecked.erase(begin);
-			break;
-		}
-	}
-
-	// dopóki nie sprawdzimy ka¿dego wierzcho³ka
-	while (numberOfVertex) {
-		// wype³nienie kolejki krawêdziami
-		if (!(edgesMST.size() + prioQueue.size() == edgesCollection.size())) {
-			
-			for (beginE = edgesCollection.begin(); beginE != edgesCollection.end(); beginE++) {
-				bool doWstawienia = 1;
-
-				std::list<Edge>::iterator beginS;
-				for (beginS = edgesMST.begin(); beginS != edgesMST.end(); beginS++) {
-					if (*beginS == *beginE) {
-						doWstawienia = 0;
-						break;
-					}
-				}
-
-				if ((beginE->source == vertexID || beginE->destination == vertexID) && doWstawienia) {
-					std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
-					Edge e = { beginE->weight, beginE->source, beginE->destination };
-
-					while (!prioQueue.empty()) {
-						temp = prioQueue.top();
-						prioQueue.pop();
-						if (temp == e) {
-							doWstawienia = 0;
-							break;
-						}
-					}
-					prioQueue = tempQueue;
-					if (doWstawienia) prioQueue.push(e);
-				}
-			}
-		}		
-
-		Edge insertEdge = { INT_MAX, 0, 0 };
-		int nmbrEdge = -1;
-		// jeœli lista nie pusta
-		if (!edgesMST.empty()) {
-			std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
-			while (!prioQueue.empty()) {
-				bool doWstawienia = 1;
-				// wziêcie krawêdzi z heap
-				temp = prioQueue.top();
-				prioQueue.pop();
-
-				if (temp.weight < insertEdge.weight) {
-					nmbrEdge++;
-
-					if (doWstawienia) {
-						// trzeba sprawdziæ czy istnieje petla
-						int vertexTakenIntoaccount = 0;
-						for (begin = verticesChecked.begin(); begin != verticesChecked.end(); begin++) {
-							if (temp.destination == *begin || temp.source == *begin) {
-								vertexTakenIntoaccount++;
-							}
-							if (vertexTakenIntoaccount == 2) {
-								doWstawienia = 0;
-								break;
-							}
-						}
-					}
-
-					// nie powtórzone
-					if (doWstawienia) {
-						insertEdge = temp;
-					}
-				}
-				else break;
-			}
-			prioQueue = tempQueue;
-		}
-		else {
-			nmbrEdge++;
-			insertEdge = prioQueue.top();
-		}
-
-		// wstaw do drzewa
-		edgesMST.push_back(insertEdge);
-
-		if (!verticesNotChecked.empty()) {
-			std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue;
-
-			while (!prioQueue.empty()) {
-				if (nmbrEdge != 0) {
-					tempQueue.push(prioQueue.top());
-				}
-				prioQueue.pop();
-				nmbrEdge--;
-			}
-			prioQueue = tempQueue;
-			std::list<int> candidates = { insertEdge.source, insertEdge.destination };
-			for (int v : verticesChecked) {
-				for (begin = candidates.begin(); begin != candidates.end(); begin++) {
-					if (v == *begin) {
-						candidates.erase(begin);
-						break;
-					}
-				}
-			}
-			if (candidates.empty() && !verticesNotChecked.empty()) vertexID = verticesNotChecked.front();
-			else vertexID = candidates.front();
-
-			// przenoszenie wierzcho³ków z not check do check
-			verticesChecked.push_back(vertexID);
-			for (begin = verticesNotChecked.begin(); begin != verticesNotChecked.end(); begin++) {
-				if (*begin == vertexID) {
-					verticesNotChecked.erase(begin);
-					break;
-				}
-			}
-			numberOfVertex--;
-		}
-	}
-	while (!prioQueue.empty()) prioQueue.pop();
-}
-
 std::list<std::list<int>> MST::algorithmPrimMatrix() {
 	while (!prioQueue.empty()) {
 		prioQueue.pop();
 	}
 
-	// auto start = std::chrono::system_clock::now();
+	auto start = std::chrono::system_clock::now();
 	int numberOfVertex = neighborMatrix.size();
 	int vertexID = 0;
 	std::list<int> sub_list;
@@ -600,20 +338,6 @@ std::list<std::list<int>> MST::algorithmPrimMatrix() {
 						if (*someiterInner) {
 							doWstawienia = 0;
 						}
-						/* jesli dobra implementacja to ta czesc nie powinna byæ potrzebna
-						else {
-							someiter = outputMatrix.begin();
-							// src = temp.destination;
-							// dst = temp.source;
-							for (int i = 0; i < temp.destination; i++) someiter++;
-
-							someiterInner = someiter->begin();
-							for (int i = 0; i < temp.source; i++) someiterInner++;
-
-							if (*someiterInner) {
-								doWstawienia = 0;
-							}
-						}*/
 
 						// jesli jest w kopcu
 						if (doWstawienia) {
@@ -622,6 +346,7 @@ std::list<std::list<int>> MST::algorithmPrimMatrix() {
 							while (!prioQueue.empty()) {
 								e = prioQueue.top();
 								prioQueue.pop();
+								if (e.weight > temp.weight) break;
 								if (temp == e) {
 									doWstawienia = 0;
 									break;
@@ -684,9 +409,9 @@ std::list<std::list<int>> MST::algorithmPrimMatrix() {
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
-	// auto end = std::chrono::system_clock::now();
-	// auto elapsed = end - start;
-	// std::cout << elapsed.count() << '\n';
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = end - start;
+	std::cout << elapsed.count() << '\n';
 
 	return outputMatrix;
 }
@@ -696,7 +421,7 @@ std::list<std::list<Neighbor>> MST::algorithmPrimList() {
 		prioQueue.pop();
 	}
 
-	// auto start = std::chrono::system_clock::now();
+	auto start = std::chrono::system_clock::now();
 	int numberOfVertex = neighborList.size();
 	int vertexEdgesToAdd = 0;
 	std::list<Neighbor> sub_list = { Neighbor{ -1, -1 } };
@@ -748,15 +473,16 @@ std::list<std::list<Neighbor>> MST::algorithmPrimList() {
 
 						if (doWstawienia) {
 							// jesli jest w kopcu
-							Edge e;
+							// Edge e;
 							std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
 							while (!prioQueue.empty()) {
-								e = prioQueue.top();
+								//e = prioQueue.top();
 								prioQueue.pop();
-								if (temp == e) {
+								if (prioQueue.top().weight > temp.weight) break;
+								if (temp == prioQueue.top()) {
 									doWstawienia = 0;
 									break;
-								}
+								}								
 							}
 							prioQueue = tempQueue;
 						}
@@ -811,7 +537,7 @@ std::list<std::list<Neighbor>> MST::algorithmPrimList() {
 
 		outside = outputList.begin();
 
-		int currentVertex = vertexEdgesToAdd;
+		//int currentVertex = vertexEdgesToAdd;
 		vertexEdgesToAdd = -1;
 		numberOfVertex = 0;
 		for (int i = 0; i < outputList.size(); i++) {
@@ -829,59 +555,11 @@ std::list<std::list<Neighbor>> MST::algorithmPrimList() {
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
-	// auto end = std::chrono::system_clock::now();
-	// auto elapsed = end - start;
-	// std::cout << elapsed.count() << '\n';
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = end - start;
+	std::cout << elapsed.count() << '\n';
 
 	return outputList;
-}
-
-void MST::displayMST() {
-	if (edgesMST.empty()) std::cout << "Lista MST jest pusta." << std::endl;
-	else {
-		int weightTotal = 0;
-		for (Edge e : edgesMST) {
-			std::cout << e.source << " " << e.destination << " " << e.weight << "\n";
-			weightTotal += e.weight;
-		}
-		std::cout << "Waga drzewa rozpinajacego: " << weightTotal << std::endl;
-	
-		// matrix
-		verticesChecked.sort();
-		std::list<int>::iterator it;
-		std::cout << "   ";
-		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-			std::cout << *it << " ";
-		}
-		std::cout << "\n";
-		std::cout << " |";
-		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-			std::cout << "--";
-		}
-		std::cout << "\n";
-		for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-			std::cout << *it << "| ";
-			std::list<int>::iterator its;
-			for (its = verticesChecked.begin(); its != verticesChecked.end(); its++) {
-				if (its != it) {
-					int exists = 0;
-					for (Edge e : edgesMST) {
-						if (e.source == *it && e.destination == *its) {
-							exists = 1;
-							break;
-						}
-						else if (e.destination == *it && e.source == *its) {
-							exists = 1;
-							break;
-						}
-					}
-					std::cout << exists << " ";
-				}
-				else std::cout << "0 ";
-			}
-			std::cout << "\n";
-		}
-	}
 }
 
 void MST::displayMSTMatrix(std::list<std::list<int>>& matrix) {
@@ -946,36 +624,6 @@ void MST::displayMSTList(std::list<std::list<Neighbor>>& list) {
 }
 
 void MST::displayList() {
-	if (edgesCollection.empty()) std::cout << "Lista jest pusta." << std::endl;
-	else {
-		std::list<int>::iterator it;
-		if (verticesChecked.empty()) {
-			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
-				std::cout << *it << ": ";
-				for (Edge e : edgesCollection) {
-					if (e.source == *it) std::cout << e.destination << " ";
-					else if (e.destination == *it) std::cout << e.source << " ";
-				}
-				std::cout << "\n";
-			}
-		}
-		else {
-			verticesChecked.sort();
-
-			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-				std::cout << *it << ": ";
-				for (Edge e : edgesCollection) {
-					if (e.source == *it) std::cout << e.destination << " ";
-					else if (e.destination == *it) std::cout << e.source << " ";
-				}
-				std::cout << "\n";
-			}
-		}
-		std::cout << std::endl;
-	}
-}
-
-void MST::displayList2() {
 	if (neighborList.empty()) std::cout << "Lista jest pusta." << std::endl;
 	else {
 		std::list<std::list<Neighbor>>::iterator it;
@@ -995,84 +643,6 @@ void MST::displayList2() {
 }
 
 void MST::displayMatrix() {
-	if (edgesCollection.empty()) std::cout << "Lista jest pusta." << std::endl;
-	else {
-		std::list<int>::iterator it;
-		if (verticesChecked.empty()) {
-			std::cout << "   ";
-			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
-				std::cout << *it << " ";
-			}
-			std::cout << "\n";
-			std::cout << " |";
-			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
-				std::cout << "--";
-			}
-			std::cout << "\n";
-			for (it = verticesNotChecked.begin(); it != verticesNotChecked.end(); it++) {
-				std::cout << *it << "| ";
-				std::list<int>::iterator its;
-				for (its = verticesNotChecked.begin(); its != verticesNotChecked.end(); its++) {
-					if (its != it) {
-						int exists = 0;
-						for (Edge e : edgesCollection) {
-							if (e.source == *it && e.destination == *its) {
-								exists = 1;
-								break;
-							}
-							else if (e.destination == *it && e.source == *its) {
-								exists = 1;
-								break;
-							}
-						}
-						std::cout << exists << " ";
-					}
-					else std::cout << "0 ";
-				}
-				std::cout << "\n";
-			}
-		}
-		else {
-			verticesChecked.sort();
-
-			std::cout << "   ";
-			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-				std::cout << *it << " ";
-			}
-			std::cout << "\n";
-			std::cout << " |";
-			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-				std::cout << "--";
-			}
-			std::cout << "\n";
-			for (it = verticesChecked.begin(); it != verticesChecked.end(); it++) {
-				std::cout << *it << "| ";
-				std::list<int>::iterator its;
-				for (its = verticesChecked.begin(); its != verticesChecked.end(); its++) {
-					if (its != it) {
-						int exists = 0;
-						for (Edge e : edgesCollection) {
-							if (e.source == *it && e.destination == *its) {
-								exists = 1;
-								break;
-							}
-							else if (e.destination == *it && e.source == *its) {
-								exists = 1;
-								break;
-							}
-						}
-						std::cout << exists << " ";
-					}
-					else std::cout << "0 ";
-				}
-				std::cout << "\n";
-			}
-		}
-		std::cout << std::endl;
-	}
-}
-
-void MST::displayMatrix2() {
 	if (neighborMatrix.empty()) std::cout << "Macierz jest pusta." << std::endl;
 	else {
 		int spacesNeeded = log10(neighborMatrix.size()) + 1;
