@@ -41,9 +41,9 @@ void menu_MST()
 		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
-			mst.readFromFile(fileName);
-			mst.displayList();
-			mst.displayMatrix();
+			mst.readFromFileNew(fileName);
+			mst.displayList2();
+			mst.displayMatrix2();
 			break;
 
 		case '2': //tutaj generowanie grafu
@@ -51,27 +51,31 @@ void menu_MST()
 			std::cin >> amount;
 			std::cout << " Podaj gestosc (calkowite %): ";
 			std::cin >> density;
-			mst.generateGraph(amount, density);
+			// mst.generateGraph(amount, density);
+			mst.generateGraphNew(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
-			mst.displayMST();
-			mst.displayList();
-			mst.displayMatrix();
+			// mst.displayMST();
+			mst.displayList2();
+			mst.displayMatrix2();
 			break;
 
-		case '4': //tutaj algorytm Prima
-			mst.algorithmPrim();
-			mst.displayMST();
-			break;
+		case '4': {//tutaj algorytm Prima
+			std::list<std::list<int>> m = mst.algorithmPrimMatrix();
+			mst.displayMSTMatrix(m);
+			std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
+			mst.displayMSTList(l);
 
-		case '5':  //tutaj algorytm Kruskala
-			std::cout << "Podaj ilosc elementów tablicy:";
+			break;
+		}
+		case '5': {//tutaj algorytm Kruskala
+			//std::cout << "Podaj ilosc elementów tablicy:";
 			// std::cin >> value;
 			// myTab.generateTable(value);
 			// myTab.display();
 			break;
-
+		}
 		}
 	} while (opt != '0');
 }
