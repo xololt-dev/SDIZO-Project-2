@@ -6,6 +6,9 @@
 
 class FSP : public Graph{
 public:
+	void readFromFile(std::string FileName);
+	void generateGraph(int sideLength, int density);
+
 	void dijkstraMatrix();
 	void dijkstraList();
 	void fordBellmanMatrix();
