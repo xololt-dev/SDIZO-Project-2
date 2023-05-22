@@ -66,7 +66,7 @@ void menu_MST() {
 
 		case '4': {//tutaj algorytm Prima
 			graph.algorithmPrimListN();
-			graph.displayMSTList();
+			graph.displayList(1);
 			//std::list<std::list<int>> m = mst.algorithmPrimMatrix();
 			//mst.displayMSTMatrix(m);
 			//std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
