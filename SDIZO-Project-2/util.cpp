@@ -39,7 +39,7 @@ int Matrix::valueInPosition(int x, int y) {
 	return tab[x][y];
 }
 
-void Matrix::display() {
+void Matrix::display(bool mst) {
 	if (empty()) std::cout << "Macierz jest pusta." << std::endl;
 	else {
 		int lengthMST = 0;
@@ -69,7 +69,8 @@ void Matrix::display() {
 			}
 			std::cout << "\n";
 		}
-		std::cout << "\nRozmiar drzewa: " << lengthMST / 2 << "\n\n";
+		if (mst) std::cout << "\nRozmiar drzewa: " << lengthMST / 2;
+		std::cout << "\n\n";
 	}
 }
 
