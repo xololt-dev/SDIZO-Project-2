@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "graph.hpp"
-#include "util.hpp"
+// #include "util.hpp"
 
 // za³adowaæ liczbê krawêdzi, liczbê wierzcho³ków i ka¿d¹ krawêdŸ
 void Graph::readFromFile(std::string FileName) {
@@ -326,7 +326,7 @@ void Graph::displayList(bool mst) {
 void Graph::displayMatrix(bool mst) {
 	if (mst) {
 		if (outputMatrix.empty()) std::cout << "Macierz jest pusta." << std::endl;
-		else outputMatrix.display();
+		else outputMatrix.display(1);
 	}
 	else {
 		if (neighborMatrix.empty()) std::cout << "Macierz jest pusta." << std::endl;
