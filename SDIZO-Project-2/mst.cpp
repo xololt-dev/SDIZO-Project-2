@@ -91,8 +91,7 @@ void MST::readFromFile(std::string FileName) {
 	else std::cout << "Plik nie zostal otworzony!\n";
 }
 
-void MST::generateGraph(int sideLength, int density)
-{
+void MST::generateGraph(int sideLength, int density) {
 	if (!sideLength || !density) return;
 	// cleanup
 	while (!prioQueue.empty()) prioQueue.pop();
