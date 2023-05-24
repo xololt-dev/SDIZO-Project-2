@@ -340,7 +340,7 @@ void Graph::algorithmPrimListN() {
 		prioQueue.pop();
 	}
 
-	int edgesLeft = this->neighborList.sideLength() - 1;
+	int edgesLeft = this->neighborList.size() - 1;
 	int vertexEdgesToAdd = 0;
 	List<int> vertLeft;
 	for (int i = 0; i <= edgesLeft; i++) {

@@ -84,7 +84,7 @@ public:
 	void clear();
 	void generateEmpty(int sideLength);
 	void deleteFromList(T value);
-	int sideLength();
+	int size();
 	bool empty();
 
 private:
@@ -257,10 +257,10 @@ template<typename T> void List<T>::deleteFromList(T value) {
 		}
 	}
 	// if value not found, return a message
-	std::cout << "Nie znaleziono wartosci do usuniecia!\n";
+	// std::cout << "Nie znaleziono wartosci do usuniecia!\n";
 }
 
-template<typename T> int List<T>::sideLength() {
+template<typename T> int List<T>::size() {
 	return cnt;
 }
 
