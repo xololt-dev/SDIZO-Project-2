@@ -49,7 +49,7 @@ void FSP::generateGraph(int sideLength, int density) {
 	neighborList.clear();
 	neighborMatrix.clear();
 
-	int randValue = 1000;
+	int randValue = 9;
 	List<int> remainingVertexToPointTo;
 
 	srand(time(NULL));
@@ -74,8 +74,10 @@ void FSP::generateGraph(int sideLength, int density) {
 	}*/
 	// dojscie do kazdego wierzcholka
 	for (int i = 0; i < sideLength; i++) {
-		e.source = rand() % sideLength;
 		e.destination = i;
+		do {
+			e.source = rand() % sideLength;
+		} while (e.source == i);
 		e.weight = 1 + rand() % randValue;
 		
 		iterList = neighborList.front();
@@ -85,69 +87,47 @@ void FSP::generateGraph(int sideLength, int density) {
 		neighborMatrix.addValue(e.source, e.destination, e.weight);
 		edgesLeft--;
 	}
-	/*
+	
 	// ta czêœæ nie dokoñczona
 	while (edgesLeft) {
 		// wyznaczenie pierwszego wierzcho³ka
 		do {
 			random = rand() % sideLength;
-			outsideL = neighborList.begin();
-			for (int i = 0; i < random; i++) outsideL++;
-		} while (outsideL->size() == sideLength - 1);
+			iterList = neighborList.front();
+			for (int i = 0; i < random; i++) iterList = iterList->next;
+		} while (iterList->data.size() >= sideLength - 1);
 
-		std::list<int> exists;
+		List<int> exists;
 		for (int i = 0; i < sideLength; i++) {
 			if (i != random) exists.push_back(i);
 		}
 
-		insideL = outsideL->begin();
-
+		ListMember<Neighbor>* inner = iterList->data.front();
+		
 		// zostawiæ tylko mo¿liwoœci do wybrania
-		while (insideL != outsideL->end()) {
-			exists.remove(insideL->destination);
-			insideL++;
+		while (inner) {
+			exists.deleteFromList(inner->data.destination);
+			inner = inner->next;
 		}
 
 		// wyznaczenie celu
-		int dest = rand() % exists.size();
-		itt = exists.begin();
-		for (int i = 0; i < dest; i++) itt++;
+		ListMember<int>* intCount = exists.front();
+		int dest = -1;
+		do {
+			dest = rand() % exists.size();
+			for (int i = 0; i < dest; i++) intCount = intCount->next;
 
-		dest = *itt;
+			dest = intCount->data;
+		} while (dest == random);
+
 		int weight = 1 + rand() % randValue;
 
 		// wstawianie
-		if (outsideL->begin()->destination != -1) {
-			outsideL->push_back(Neighbor{ weight, dest });
-		}
-		else {
-			*(outsideL->begin()) = Neighbor{ weight, dest };
-		}
-		outsideM = neighborMatrix.begin();
-		for (int i = 0; i < random; i++) outsideM++;
-		insideM = outsideM->begin();
-		for (int i = 0; i < dest; i++) insideM++;
-		*insideM = weight;
-
-		outsideL = neighborList.begin();
-		outsideM = neighborMatrix.begin();
-		for (int i = 0; i < dest; i++) {
-			outsideL++;
-			outsideM++;
-		}
-		if (outsideL->begin()->destination != -1) {
-			outsideL->push_back(Neighbor{ weight, random });
-		}
-		else {
-			*(outsideL->begin()) = Neighbor{ weight, random };
-		}
-		insideM = outsideM->begin();
-		for (int i = 0; i < random; i++) insideM++;
-		*insideM = weight;
+		iterList->data.push_back(Neighbor{ weight, dest, 0, 0 });
+		neighborMatrix.addValue(random, dest, weight);
 
 		edgesLeft--;
 	}
-	*/
 }
 
 /*
