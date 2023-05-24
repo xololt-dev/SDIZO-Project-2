@@ -130,26 +130,162 @@ void FSP::generateGraph(int sideLength, int density) {
 	}
 }
 
-/*
-void FSP::dijkstraMatrix() {
-	while (!prioQueue.empty()) {
-		prioQueue.pop();
+void FSP::dijkstraMatrix(bool display) {
+	// setup
+	int numberOfVertex = neighborMatrix.size();
+
+	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
+	List<int> q, s;
+	for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
+
+	int* d = new int[numberOfVertex];
+	int* p = new int[numberOfVertex];
+	for (int i = 0; i < numberOfVertex; i++) {
+		p[i] = -1;
+		if (i) d[i] = INT_MAX;
+		else d[i] = 0;
 	}
 	
-	int numberOfVertex = neighborMatrix.size();
-	int vertexID = 0;
+	// wlasciwy algorytm
+	while (!q.empty()) {
+		// znajdz najmniejszy koszt dojscia
+		int lowestIndex = 0;
+		int lowestAmount = INT_MAX;
+		for (int i = 0; i < numberOfVertex; i++) {
+			if (d[i] < lowestAmount) {
+				ListMember<int>* frnt = s.front();
+				bool input = 1;
+				while (frnt) {
+					if (frnt->data == i) {
+						input = 0;
+						break;
+					}
+					frnt = frnt->next;
+				}
+				if (input) {
+					lowestIndex = i;
+					lowestAmount = d[i];
+				}
+			}
+		}
 
-	Matrix outputMatrix;
-	outputMatrix.clear();
+		// usun ze zbioru q, wstaw do s
+		q.deleteFromList(lowestIndex);
+		s.push_back(lowestIndex);
 
-	for (int j = 0; j < numberOfVertex; j++) {
-		sub_list.push_back(0);
+		for (int i = 0; i < numberOfVertex; i++) {
+			if (i != lowestIndex) {
+				int weight = neighborMatrix.valueInPosition(lowestIndex, i);
+				if (d[i] > lowestAmount + weight && weight) {
+					d[i] = lowestAmount + weight;
+					p[i] = lowestIndex;
+				}
+			}
+		}
 	}
-	for (int i = 0; i < numberOfVertex; i++) {
-		outputMatrix.push_back(sub_list);
+	
+	if (display) {
+		std::cout << "u ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << i << " ";
+		}
+		std::cout << "\nd[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << d[i] << " ";
+		}
+		std::cout << "\np[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << p[i] << " ";
+		}
+		std::cout << "\n";
 	}
 
-	numberOfVertex--;
+	// release resources
+	delete[] d;
+	delete[] p;
 }
-*/
 
+void FSP::dijkstraList(bool display) {
+	// setup
+	int numberOfVertex = neighborList.size();
+
+	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
+	List<int> q, s;
+	for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
+
+	int* d = new int[numberOfVertex];
+	int* p = new int[numberOfVertex];
+	for (int i = 0; i < numberOfVertex; i++) {
+		p[i] = -1;
+		if (i) d[i] = INT_MAX;
+		else d[i] = 0;
+	}
+
+	// wlasciwy algorytm
+	while (!q.empty()) {
+		// znajdz najmniejszy koszt dojscia
+		int lowestIndex = 0;
+		int lowestAmount = INT_MAX;
+		for (int i = 0; i < numberOfVertex; i++) {
+			if (d[i] < lowestAmount) {
+				ListMember<int>* frnt = s.front();
+				bool input = 1;
+				while (frnt) {
+					if (frnt->data == i) {
+						input = 0;
+						break;
+					}
+					frnt = frnt->next;
+				}
+				if (input) {
+					lowestIndex = i;
+					lowestAmount = d[i];
+				}
+			}
+		}
+
+		// usun ze zbioru q, wstaw do s
+		q.deleteFromList(lowestIndex);
+		s.push_back(lowestIndex);
+
+		ListMember<List<Neighbor>>* iterator = neighborList.front();
+		int i = 0;
+		while (iterator) {
+			if (i == lowestIndex) {
+				ListMember<Neighbor>* innerIter = iterator->data.front();
+				while (innerIter) {
+					int weight = innerIter->data.weight;
+					int index = innerIter->data.destination;// neighborMatrix.valueInPosition(lowestIndex, i);
+					if (d[index] > lowestAmount + weight && weight) {
+						d[index] = lowestAmount + weight;
+						p[index] = lowestIndex;
+					}
+					innerIter = innerIter->next;
+				}
+				break;
+			}
+			iterator = iterator->next;
+			i++;
+		}
+	}
+
+	if (display) {
+		std::cout << "u ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << i << " ";
+		}
+		std::cout << "\nd[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << d[i] << " ";
+		}
+		std::cout << "\np[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << p[i] << " ";
+		}
+		std::cout << "\n";
+	}
+
+	// release resources
+	delete[] d;
+	delete[] p;
+}

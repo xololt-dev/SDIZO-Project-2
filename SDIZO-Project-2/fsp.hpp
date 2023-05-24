@@ -9,10 +9,10 @@ public:
 	void readFromFile(std::string FileName);
 	void generateGraph(int sideLength, int density);
 
-	void dijkstraMatrix();
-	void dijkstraList();
-	void fordBellmanMatrix();
-	void fordBellmanList();
+	void dijkstraMatrix(bool display = 0);
+	void dijkstraList(bool display = 0);
+	void fordBellmanMatrix(bool display = 0);
+	void fordBellmanList(bool display = 0);
 
 private:
 	
