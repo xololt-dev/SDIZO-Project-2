@@ -70,7 +70,7 @@ void Matrix::display(bool mst) {
 			std::cout << "\n";
 		}
 		if (mst) std::cout << "\nRozmiar drzewa: " << lengthMST / 2;
-		std::cout << "\n\n";
+		std::cout << "\n";
 	}
 }
 
