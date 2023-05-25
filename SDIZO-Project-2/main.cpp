@@ -45,12 +45,12 @@ void menu_MST() {
 		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
-			// mst.readFromFile(fileName);
-			// mst.displayList();
-			// mst.displayMatrix();
-			graph.readFromFile(fileName);
-			graph.displayList();
-			graph.displayMatrix();
+			mst.readFromFile(fileName);
+			mst.displayList();
+			mst.displayMatrix();
+			// graph.readFromFile(fileName);
+			// graph.displayList();
+			// graph.displayMatrix();
 			break;
 
 		case '2': //tutaj generowanie grafu
@@ -60,22 +60,23 @@ void menu_MST() {
 			std::cin >> density;
 			// mst.generateGraph(amount, density);
 			// mst.generateGraph(amount, density);
-			fsp.generateGraph(amount, density);
+			mst.generateGraph(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
 			// mst.displayMST();
 			// mst.displayList();
 			// mst.displayMatrix();
-			fsp.displayList();
-			fsp.displayMatrix();
+			mst.displayList();
+			mst.displayMatrix();
 			break;
 
 		case '4': {//tutaj algorytm Prima
 			// graph.algorithmPrimListN();
 			// graph.displayList(1);
 			// fsp.dijkstraMatrix(1);
-			fsp.dijkstraList(1);
+			mst.algorithmPrimMatrix();
+			mst.algorithmPrimList();
 			
 			//std::list<std::list<int>> m = mst.algorithmPrimMatrix();
 			//mst.displayMSTMatrix(m);
