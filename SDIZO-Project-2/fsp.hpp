@@ -15,5 +15,5 @@ public:
 	void fordBellmanList(bool display = 0);
 
 private:
-	
+	int startVertexIndex;
 };

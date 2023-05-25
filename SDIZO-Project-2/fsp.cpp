@@ -22,6 +22,8 @@ void FSP::readFromFile(std::string FileName) {
 		neighborList.generateEmpty(vertexAmount);
 		neighborMatrix.generateEmpty(vertexAmount);
 
+		file >> startVertexIndex;
+
 		Edge tempEdge;
 		ListMember<List<Neighbor>>* iterList = neighborList.front();
 		// Zrobiæ dodawanie po jednym elem.
@@ -57,6 +59,7 @@ void FSP::generateGraph(int sideLength, int density) {
 	neighborList.generateEmpty(sideLength);
 	neighborMatrix.generateEmpty(sideLength);
 	for (int i = 0; i < sideLength; i++) remainingVertexToPointTo.push_back(i);
+	startVertexIndex = 0;
 
 	Edge e;
 	ListMember<List<Neighbor>>* iterList = neighborList.front();
@@ -185,7 +188,7 @@ void FSP::dijkstraMatrix(bool display) {
 	}
 	
 	if (display) {
-		std::cout << "u ";
+		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
 			std::cout << i << " ";
 		}
@@ -270,7 +273,7 @@ void FSP::dijkstraList(bool display) {
 	}
 
 	if (display) {
-		std::cout << "u ";
+		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
 			std::cout << i << " ";
 		}
@@ -283,6 +286,229 @@ void FSP::dijkstraList(bool display) {
 			std::cout << p[i] << " ";
 		}
 		std::cout << "\n";
+	}
+
+	// release resources
+	delete[] d;
+	delete[] p;
+}
+
+void FSP::fordBellmanMatrix(bool display) {
+	int numberOfVertex = neighborMatrix.size();
+
+	// tablice d i p
+	int* d = new int[numberOfVertex];
+	int* p = new int[numberOfVertex];
+	for (int i = 0; i < numberOfVertex; i++) {
+		p[i] = -1;
+		if (i) d[i] = INT_MAX;
+		else d[i] = 0;
+	}
+
+	// q to tablica wierzcholkow do odwiedzenia
+	List<int> q;
+	int iterations = neighborMatrix.size() - 1;
+	bool pathChange = 1;
+
+	// dopoki zostaly iteracje do wykonania i nastapila zmiana w tablicach d i p
+	while (iterations && pathChange) {
+		pathChange = 0;
+		for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
+		int currentVertex = startVertexIndex;
+		List<int> possiblePaths;
+
+		// petla az rozpatrzymy kazdy wierzcholek
+		do {
+			q.deleteFromList(currentVertex);
+
+			// krawedzie wychodzace z currentVertex
+			// aktualizacja drog
+			int weight = 0, index = -1;
+			for (int i = 0; i < numberOfVertex; i++) {
+				weight = neighborMatrix.valueInPosition(currentVertex, i);
+				if (d[i] > d[currentVertex] + weight && weight) {
+					d[i] = d[currentVertex] + weight;
+					p[i] = currentVertex;
+					pathChange = 1;
+					possiblePaths.push_back(i);
+				}
+			}
+
+			// wybor nastepnego wierzcholka
+			ListMember<int>* qIter = q.front(), * possibleIter = possiblePaths.front();
+			bool found = 0;
+
+			while (possibleIter) {
+				while (qIter) {
+					// jesli w liscie possible jest wierzcholek znajdujacy sie w zbiorze q, to przerywamy petle -> znalezlismy nastepny wierzcholek do przetworzenia
+					if (qIter->data == possibleIter->data) {
+						currentVertex = qIter->data;
+						found = 1;
+						break;
+					}
+					qIter = qIter->next;
+				}
+
+				if (!found) possibleIter = possibleIter->next;
+				else break;
+			}
+			possiblePaths.clear();
+
+			if (!found && !q.empty()) currentVertex = q.front()->data;
+
+		} while (!q.empty());
+		q.clear();
+		iterations--;
+	}
+
+	// sprawdzic petle + wyswietlenie rezultatu
+	if (display) {
+		bool petla = 0;
+
+		for (int i = 0; i < numberOfVertex; i++) {
+			for (int j = 0; j < numberOfVertex; j++) {
+				int weight = neighborMatrix.valueInPosition(i, j);
+				if (weight) {
+					if (d[j] > d[i] + weight && j != startVertexIndex) {
+						petla = 1;
+						break;
+					}
+				}				
+			}
+			if (petla) break;
+		}
+
+		if (petla) std::cout << "Wystepuje petla!\n";
+
+		std::cout << "   u ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << i << " ";
+		}
+		std::cout << "\nd[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << d[i] << " ";
+		}
+		std::cout << "\np[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << p[i] << " ";
+		}
+		std::cout << "\n\n";
+	}
+
+	// release resources
+	delete[] d;
+	delete[] p;
+}
+
+void FSP::fordBellmanList(bool display) {
+	int numberOfVertex = neighborList.size();
+
+	// tablice d i p
+	int* d = new int[numberOfVertex];
+	int* p = new int[numberOfVertex];
+	for (int i = 0; i < numberOfVertex; i++) {
+		p[i] = -1;
+		if (i) d[i] = INT_MAX;
+		else d[i] = 0;
+	}
+
+	// q to tablica wierzcholkow do odwiedzenia
+	List<int> q;
+	int iterations = neighborList.size() - 1;
+	bool pathChange = 1;
+
+	// dopoki zostaly iteracje do wykonania i nastapila zmiana w tablicach d i p
+	while (iterations && pathChange) {
+		pathChange = 0;
+		for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
+		int currentVertex = startVertexIndex;
+		List<int> possiblePaths;
+
+		// petla az rozpatrzymy kazdy wierzcholek
+		do {
+			q.deleteFromList(currentVertex);
+
+			// krawedzie wychodzace z currentVertex
+			ListMember<List<Neighbor>>* iterator = neighborList.front();
+			for (int i = 0; i < currentVertex; i++) iterator = iterator->next;
+
+			// aktualizacja drog
+			ListMember<Neighbor>* innerIter = iterator->data.front();
+			while (innerIter) {
+				int weight = innerIter->data.weight;
+				int index = innerIter->data.destination;
+
+				if (d[index] > d[currentVertex] + weight && weight) {
+					d[index] = d[currentVertex] + weight;
+					p[index] = currentVertex;
+					pathChange = 1;
+					possiblePaths.push_back(index);
+				}
+				innerIter = innerIter->next;
+			}
+
+			// wybor nastepnego wierzcholka
+			ListMember<int>* qIter = q.front(), * possibleIter = possiblePaths.front();
+			bool found = 0;
+
+			while (possibleIter) {
+				while (qIter) {
+					// jesli w liscie possible jest wierzcholek znajdujacy sie w zbiorze q, to przerywamy petle -> znalezlismy nastepny wierzcholek do przetworzenia
+					if (qIter->data == possibleIter->data) {
+						currentVertex = qIter->data;
+						found = 1;
+						break;
+					}
+					qIter = qIter->next;
+				}
+				
+				if (!found) possibleIter = possibleIter->next;
+				else break;
+			}
+			possiblePaths.clear();
+
+			if (!found && !q.empty()) currentVertex = q.front()->data;
+		} while (!q.empty());
+		q.clear();
+		iterations--;
+	}
+
+	// sprawdzic petle + wyswietlenie rezultatu
+	if (display) {
+		ListMember<List<Neighbor>>* iterator = neighborList.front();
+		ListMember<Neighbor>* innerIter = iterator->data.front();
+		bool petla = 0;
+		int x = 0;		
+
+		while (iterator) {
+			innerIter = iterator->data.front();
+			while (innerIter) {
+				if (d[innerIter->data.destination] > d[x] + innerIter->data.weight && innerIter->data.destination != startVertexIndex) {
+					petla = 1;
+					break;
+				}
+				innerIter = innerIter->next;
+			}
+			if (petla) break;
+			iterator = iterator->next;
+			x++;
+		}
+
+		if (petla) std::cout << "Wystepuje petla!\n";
+
+		std::cout << "   u ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << i << " ";
+		}
+		std::cout << "\nd[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << d[i] << " ";
+		}
+		std::cout << "\np[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << p[i] << " ";
+		}
+		std::cout << "\n\n";
 	}
 
 	// release resources
