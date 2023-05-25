@@ -24,8 +24,10 @@ void displaySubMenu(std::string info) {
 	std::cout << "1. Wczytaj z pliku" << std::endl;
 	std::cout << "2. Utworz losowo" << std::endl;
 	std::cout << "3. Wyswietl" << std::endl;
-	std::cout << "4. Algorytm 1" << std::endl;
-	std::cout << "5. Algorytm 2" << std::endl;
+	info == "--- MST ---" ? 
+		std::cout << "4. Algorytm Prima" << std::endl : std::cout << "4. Algorytm Dijkstry" << std::endl;
+	info == "--- MST ---" ?
+		std::cout << "5. Algorytm Kruskala" << std::endl : std::cout << "5. Algorytm Forda-Bellmana" << std::endl;
 	std::cout << "0. Powrot do menu" << std::endl;
 	std::cout << "Podaj opcje:";
 }
@@ -93,6 +95,56 @@ void menu_MST() {
 	} while (opt != '0');
 }
 
+void menu_FSP() {
+	char opt;
+	std::string fileName;
+	int amount, density;
+
+	do {
+		displaySubMenu("--- FSP ---");
+		opt = _getche();
+		std::cout << std::endl;
+		switch (opt) {
+		case '1': //tutaj wczytytwanie z pliku
+			std::cout << " Podaj nazwê zbioru:";
+			std::cin >> fileName;
+
+			fsp.readFromFile(fileName);
+			fsp.displayList();
+			fsp.displayMatrix();
+			break;
+
+		case '2': //tutaj generowanie grafu
+			std::cout << " Podaj ilosc wierzcholkow: ";
+			std::cin >> amount;
+			std::cout << " Podaj gestosc (calkowite %): ";
+			std::cin >> density;
+
+			fsp.generateGraph(amount, density);
+			break;
+
+		case '3': //tutaj wyœwietlanie
+			fsp.displayList();
+			fsp.displayMatrix();
+			break;
+
+		case '4': { //tutaj algorytm Dijkstry
+			fsp.dijkstraList(1);
+			std::cout << "\n";
+			fsp.dijkstraMatrix(1);
+			
+			break;
+		}
+		case '5': { //tutaj algorytm Forda-Bellmana
+			fsp.fordBellmanList(1);
+			fsp.fordBellmanMatrix(1);
+
+			break;
+		}
+		}
+	} while (opt != '0');
+}
+
 void displayMainMenu() {
 	char option;
 
@@ -113,7 +165,7 @@ void displayMainMenu() {
 			break;
 
 		case '2':
-			// menu_list();
+			menu_FSP();
 			break;
 
 		case '3':
