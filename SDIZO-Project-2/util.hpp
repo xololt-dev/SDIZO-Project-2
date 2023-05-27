@@ -113,7 +113,7 @@ private:
 	int cnt;
 };
 
-template <typename T> class Heap {
+class Heap {
 public:
 	Heap();		//konstruktor - wywoływany automatycznie przy tworzeniu obieku
 	~Heap();	//destrukor - wywływany automatycznie przy usuwaniu obiektu
@@ -122,15 +122,14 @@ public:
 	void buildHeap();
 	void resize();
 
-	bool isValueInHeap(T value);
-	void push(T value);
-	T pop();
+	bool isValueInHeap(Edge value);
+	void push(Edge value);
+	Edge pop();
 	bool empty();
-	
-	// void display();
-	// void displayHeap(int index);
+	void release();
+
 private:
-	T* tab;
+	Edge* tab;
 	int cnt;		// amount of values in table
 	int tab_size;	// table size
 };
@@ -364,138 +363,4 @@ template<typename T> int Table<T>::count() {
 
 template<typename T> bool Table<T>::empty() {
 	return !cnt;
-}
-
-template<typename T> Heap<T>::Heap() {
-	tab = nullptr;
-	cnt = 0;
-	tab_size = 0;
-}
-
-template<typename T> Heap<T>::~Heap() {
-	delete[] tab;
-	tab = nullptr;
-}
-
-template<typename T> void Heap<T>::heapify(int index) {
-	int smallest;
-	int l = 2 * index + 1;
-	int r = 2 * index + 2;
-
-	if (l <= cnt && tab[l] < tab[index]) smallest = l;
-	else smallest = index;
-
-	if (r <= cnt && tab[r] < tab[smallest]) smallest = r;
-
-	if (smallest != index) {
-		T temp = tab[index];
-		tab[index] = tab[smallest];
-		tab[smallest] = temp;
-		heapify(smallest);
-	}
-}
-
-/// <summary>
-/// Build heap - Floyd's algorithm
-/// </summary>
-template<typename T> void Heap<T>::buildHeap() {
-	for (int i = floor(cnt / 2) - 1; i >= 0; i--) heapify(i);
-}
-
-/// <summary>
-/// Checking if value is in the heap
-/// </summary>
-/// <param name="value - value we're searching for"></param>
-template<typename T> bool Heap<T>::isValueInHeap(T value)
-{
-	for (int i = 0; i < cnt; i++) {
-		if (tab[i] == value) return true;
-	}
-	return false;
-}
-
-/// <summary>
-/// Insert value to the heap
-/// </summary>
-/// <param name="value - value to be inserted"></param>
-template<typename T> void Heap<T>::push(T value) {
-	// jesli nie ma miejsca, realokujemy
-	if (cnt == tab_size) resize();
-
-	int i = ++cnt;
-	int parent = floor(i / 2);
-
-	while (i > 1 && tab[parent - 1] < value) {
-		tab[i - 1] = tab[parent - 1];
-		i = parent;
-		parent = floor(i / 2);
-	}
-
-	tab[i - 1] = value;
-}
-
-/// <summary>
-/// Delete value from the heap
-/// </summary>
-/// <param name="index - value we wanna delete is at this index"></param>
-template<typename T> T Heap<T>::pop() {
-	T output = T{};
-	if (!cnt) {
-		// std::cout << "Kopiec pusty!" << std::endl;
-		return output;
-	}
-
-	output = tab[0];
-	tab[0] = tab[--cnt];
-	tab[cnt + 1] = T{};
-
-	if (tab[static_cast<int>(floor((0 - 1) / 2))] < tab[0]) heapify(floor((0 - 1) / 2));
-	else heapify(0);
-	return output;
-}
-
-template<> inline Edge Heap<Edge>::pop() {
-	Edge output = Edge{ 0,0,0 };
-	if (!cnt) {
-		// std::cout << "Kopiec pusty!" << std::endl;
-		return output;
-	}
-
-	output = tab[0];
-	tab[0] = tab[--cnt];
-	tab[cnt + 1] = Edge{ 0,0,0 };
-
-	if (tab[static_cast<int>(floor((0 - 1) / 2))] < tab[0]) heapify(floor((0 - 1) / 2));
-	else heapify(0);
-	return output;
-}
-
-template<typename T> bool Heap<T>::empty() {
-	return !cnt;
-}
-
-/// <summary>
-/// Resize maximum heap size by 6
-/// </summary>
-template<typename T> void Heap<T>::resize() {
-	T* tabTemp = nullptr;
-	if (cnt != 0) {
-		int new_size = pow(2, ceil(log2(cnt)) + 1) - 1;
-		tabTemp = new T[new_size];
-		tab_size = new_size;
-	}
-	else {
-		tabTemp = new T[cnt + 6];
-		tab_size += 6;
-	}
-
-	if (tab != nullptr) {
-		for (int i = 0; i < cnt; i++) {
-			tabTemp[i] = tab[i];
-		}
-
-		delete[] tab;
-	}
-
-	tab = tabTemp;
 }
