@@ -1,22 +1,23 @@
 #pragma once
 
-#include <queue>
 #include <string>
 #include "util.hpp"
 
 class Graph {
 public:
-	void readFromFile(std::string FileName);
-	void generateGraph(int sideLength, int density);
-	void displayMSTList();
-	void algorithmPrimListN();
+	virtual void readFromFile(std::string FileName) = 0;
+	virtual void generateGraph(int sideLength, int density) = 0;
 	void displayList(bool mst = false);
 	void displayMatrix(bool mst = false);
+	void freeHeap() {
+		while (!prioQueueNew.empty()) prioQueueNew.pop();
+		prioQueueNew.resize();
+	}
+
 protected:
 	Matrix neighborMatrix;
 	Matrix outputMatrix;
 	List<List<Neighbor>> neighborList;
 	List<List<Neighbor>> outputList;
-	std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> prioQueue;
-	Heap<Edge> prioQueueNew;
+	Heap prioQueueNew;
 };
