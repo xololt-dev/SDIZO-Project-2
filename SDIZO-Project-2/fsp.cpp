@@ -1,5 +1,6 @@
 #include "fsp.hpp"
 #include <fstream>
+#include <chrono>
 
 void FSP::readFromFile(std::string FileName) {
 	std::fstream file;
@@ -9,7 +10,6 @@ void FSP::readFromFile(std::string FileName) {
 		int edgesAmount = 0, vertexAmount = 0;
 		int temp = 0;
 
-		while (!prioQueue.empty()) prioQueue.pop();
 		while (!prioQueueNew.empty()) prioQueueNew.pop();
 		if (!neighborMatrix.empty()) neighborMatrix.clear();
 		if (!neighborList.empty()) neighborList.clear();
@@ -47,11 +47,12 @@ void FSP::generateGraph(int sideLength, int density) {
 	if (edgesLeft < sideLength || !sideLength || !density) return;
 
 	// cleanup
-	while (!prioQueue.empty()) prioQueue.pop();
+	while (!prioQueueNew.empty()) prioQueueNew.pop();
+	// prioQueueNew.resize();
 	neighborList.clear();
 	neighborMatrix.clear();
 
-	int randValue = 9;
+	int randValue = 19;
 	List<int> remainingVertexToPointTo;
 
 	srand(time(NULL));
@@ -63,18 +64,7 @@ void FSP::generateGraph(int sideLength, int density) {
 
 	Edge e;
 	ListMember<List<Neighbor>>* iterList = neighborList.front();
-	/*
-	for (int i = 0; i < sideLength; i++) {
-		verticesNotChecked.push_back(i);
-		if (i) {
-			random = rand() % (verticesNotChecked.sideLength() - 1);
-			e.weight = rand() % 100;
-			e.source = i;
-			e.destination = random;
-			edgesCollection.push_back(e);
-			edgesLeft--;
-		}
-	}*/
+
 	// dojscie do kazdego wierzcholka
 	for (int i = 0; i < sideLength; i++) {
 		e.destination = i;
@@ -91,7 +81,6 @@ void FSP::generateGraph(int sideLength, int density) {
 		edgesLeft--;
 	}
 	
-	// ta czêœæ nie dokoñczona
 	while (edgesLeft) {
 		// wyznaczenie pierwszego wierzcho³ka
 		do {
@@ -99,14 +88,15 @@ void FSP::generateGraph(int sideLength, int density) {
 			iterList = neighborList.front();
 			for (int i = 0; i < random; i++) iterList = iterList->next;
 		} while (iterList->data.size() >= sideLength - 1);
-
-		List<int> exists;
-		for (int i = 0; i < sideLength; i++) {
-			if (i != random) exists.push_back(i);
-		}
-
-		ListMember<Neighbor>* inner = iterList->data.front();
 		
+		
+		/*
+		List<int> exists;
+		
+		for (int i = 0; i < sideLength; i++) {
+			exists.push_back(i);
+		}
+		ListMember<Neighbor>* inner = iterList->data.front();
 		// zostawiæ tylko mo¿liwoœci do wybrania
 		while (inner) {
 			exists.deleteFromList(inner->data.destination);
@@ -122,6 +112,12 @@ void FSP::generateGraph(int sideLength, int density) {
 
 			dest = intCount->data;
 		} while (dest == random);
+		*/
+
+		int dest = -1;
+		do {
+			dest = rand() % sideLength;
+		} while (dest == random);
 
 		int weight = 1 + rand() % randValue;
 
@@ -134,6 +130,7 @@ void FSP::generateGraph(int sideLength, int density) {
 }
 
 void FSP::dijkstraMatrix(bool display) {
+	//auto start = std::chrono::high_resolution_clock::now();
 	// setup
 	int numberOfVertex = neighborMatrix.size();
 
@@ -148,7 +145,7 @@ void FSP::dijkstraMatrix(bool display) {
 		if (i) d[i] = INT_MAX;
 		else d[i] = 0;
 	}
-	
+
 	// wlasciwy algorytm
 	while (!q.empty()) {
 		// znajdz najmniejszy koszt dojscia
@@ -186,8 +183,13 @@ void FSP::dijkstraMatrix(bool display) {
 			}
 		}
 	}
+
+	//auto end = std::chrono::high_resolution_clock::now();
+	//auto diff = end - start;
 	
 	if (display) {
+		//std::cout << diff.count() << std::endl;
+
 		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
 			std::cout << i << " ";
@@ -205,7 +207,88 @@ void FSP::dijkstraMatrix(bool display) {
 
 	// release resources
 	delete[] d;
+	d = nullptr;
 	delete[] p;
+	p = nullptr;
+}
+
+void FSP::dijkstraMatrixHeap(bool display) {
+	while (!prioQueueNew.empty()) prioQueueNew.pop();
+	// prioQueueNew.resize();
+
+	// setup
+	int numberOfVertex = neighborMatrix.size();
+	int left = 0;
+
+	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
+	int* s = new int[numberOfVertex];
+	int* d = new int[numberOfVertex];
+	int* p = new int[numberOfVertex];
+	for (int i = 0; i < numberOfVertex; i++) {
+		s[i] = 0;
+		p[i] = -1;
+		d[i] = INT_MAX;
+	}
+	d[startVertexIndex] = 0;
+
+	prioQueueNew.push(Edge{ 0, -1, startVertexIndex });
+
+	Edge e;
+	// wlasciwy algorytm
+	while (!prioQueueNew.empty()) {
+		// znajdz najmniejszy koszt dojscia
+		do {
+			e = prioQueueNew.pop();
+		} while (d[e.destination] < e.weight);
+
+		if (e != Edge{ NULL, NULL, NULL }) {
+			// usun ze zbioru q, wstaw do s
+			s[e.destination] = 1;
+			
+			d[e.destination] = e.weight;
+			p[e.destination] = e.source;
+
+			for (int i = 0; i < numberOfVertex; i++) {
+				if (i != e.destination) {
+					int weight = neighborMatrix.valueInPosition(e.destination, i);
+					if (d[i] > d[e.destination] + weight && weight && !s[i]) {
+						prioQueueNew.push(Edge{ d[e.destination] + weight, e.destination, i });
+					}
+				}
+			}
+		}		
+	}
+	// prioQueueNew.resize();
+	//auto end = std::chrono::high_resolution_clock::now();
+	//auto diff = end - start;
+
+	if (display) {
+		// std::cout << diff.count() << std::endl;
+
+		std::cout << "u    ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << i << " ";
+		}
+		std::cout << "\nd[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << d[i] << " ";
+		}
+		std::cout << "\np[u] ";
+		for (int i = 0; i < numberOfVertex; i++) {
+			std::cout << p[i] << " ";
+		}
+		std::cout << "\n";
+	}
+
+	// release resources
+	delete[] d;
+	d = nullptr;
+	delete[] s;
+	s = nullptr;
+	delete[] p;
+	p = nullptr;
+
+	// prioQueueNew.release();
 }
 
 void FSP::dijkstraList(bool display) {
