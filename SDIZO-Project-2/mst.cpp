@@ -158,7 +158,7 @@ void MST::generateGraph(int sideLength, int density) {
 	}
 }
 
-void MST::algorithmPrimMatrix() {
+void MST::algorithmPrimMatrix(bool display) {
 	outputMatrix.clear();
 	while (!prioQueue.empty()) {
 		prioQueue.pop();
@@ -255,10 +255,10 @@ void MST::algorithmPrimMatrix() {
 	auto elapsed = end - start;
 	std::cout << elapsed.count() << '\n';
 
-	displayMatrix(1);
+	displayMatrix(display);
 }
 
-void MST::algorithmPrimList() {
+void MST::algorithmPrimList(bool display) {
 	outputList.clear();
 	while (!prioQueue.empty()) {
 		prioQueue.pop();
@@ -382,191 +382,145 @@ void MST::algorithmPrimList() {
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
-	displayList(1);
+	displayList(display);
 }
-/*
-std::list<std::list<Neighbor>> MST::algorithmPrimListOld() {
+
+void MST::algorithmKruskalMatrix(bool display) {
+	outputMatrix.clear();
 	while (!prioQueue.empty()) {
 		prioQueue.pop();
 	}
 
 	auto start = std::chrono::system_clock::now();
-	int numberOfVertex = neighborList.size();
-	int vertexEdgesToAdd = 0;
-	std::list<Neighbor> sub_list = { Neighbor{ -1, -1 } };
-	std::list<std::list<Neighbor>> outputList;
-	outputList.clear();
+	int edgesLeft = neighborMatrix.size();
 
-	for (int i = 0; i < numberOfVertex; i++) {
-		outputList.push_back(sub_list);
-	}
+	int* parent = new int[edgesLeft];
+	int* rank = new int[edgesLeft];
+	outputMatrix.generateEmpty(edgesLeft);
 
-	numberOfVertex--;
-
-	// dopóki nie sprawdzimy ka¿dego wierzcho³ka
-	while (numberOfVertex) {
-		std::list<std::list<Neighbor>>::iterator outside = neighborList.begin();
-
-		// wype³nienie kolejki krawêdziami
-		int i = 0;
-		for (outside = neighborList.begin(); outside != neighborList.end(); ++outside) {
-			std::list<Neighbor>::iterator inside;
-
-			// jeœli jest to wierzcho³ek który chcemy dodaæ
-			if (i == vertexEdgesToAdd) {
-				// int j = 0;
-				Edge temp;
-				temp.source = i;
-				for (inside = outside->begin(); inside != outside->end(); inside++) {
-					// jesli po³¹czenie
-					if (inside->weight != -1) {
-						bool doWstawienia = 1;
-						std::list<Edge>::iterator beginS;
-						temp.destination = inside->destination;
-						temp.weight = inside->weight;
-
-						// jesli bylo brane pod uwage
-						std::list<std::list<Neighbor>>::iterator outerIter = outputList.begin();
-						int src = temp.source;
-						int dst = temp.destination;
-						for (int i = 0; i < src; i++) outerIter++;
-
-						std::list<Neighbor>::iterator someiterInner = outerIter->begin();
-
-						for (someiterInner; someiterInner != outerIter->end(); someiterInner++) {
-							if (someiterInner->destination == dst) {
-								doWstawienia = 0;
-								break;
-							}
-						}
-
-						if (doWstawienia) {
-							// jesli jest w kopcu
-							// Edge e;
-							std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
-							while (!prioQueue.empty()) {
-								//e = prioQueue.top();
-								prioQueue.pop();
-								if (prioQueue.top().weight > temp.weight) break;
-								if (temp == prioQueue.top()) {
-									doWstawienia = 0;
-									break;
-								}								
-							}
-							prioQueue = tempQueue;
-						}
-
-						if (doWstawienia) prioQueue.push(temp);
-					}
-				}
-				break;
-			}
-			i++;
-		}
-
-		// wybranie krawêdzi
-		bool petla = 0;
-		int src, dest;
-		Edge toAdd;
-		do {
-			toAdd = prioQueue.top();
-			prioQueue.pop();
-			src = toAdd.source;
-			dest = toAdd.destination;
-			petla = 0;
-
-			std::list<std::list<Neighbor>>::iterator outsideSecond = outputList.begin();
-			
-			outside = outputList.begin();
-
-			for (int i = 0; i < src; i++) outside++;
-			for (int i = 0; i < dest; i++) outsideSecond++;
-
-			std::list<Neighbor>::iterator inside = outside->begin();
-			std::list<Neighbor>::iterator insideS = outsideSecond->begin();
-
-			if (inside->destination == -1 || insideS->destination == -1) {
-				for (inside; inside != outside->end(); inside++) {
-					for (insideS; insideS != outsideSecond->end(); insideS++) {
-						if (inside->destination == insideS->destination && inside->destination != -1) {
-							petla = 1;
-							break;
-						}
-					}
-
-					if (petla) break;
-					else insideS = outsideSecond->begin();
-				}
-			}
-			else petla = 1;
-		} while (petla);
-
-		// dodaj do matrycy
-		addToList(toAdd.source, toAdd.destination, toAdd.weight, outputList);
-
-		outside = outputList.begin();
-
-		//int currentVertex = vertexEdgesToAdd;
-		vertexEdgesToAdd = -1;
-		numberOfVertex = 0;
-		for (int i = 0; i < outputList.size(); i++) {
-			if (i == toAdd.destination && outside->size() == 1) {
-				vertexEdgesToAdd = toAdd.destination;
-			}
-			if (outside->front().destination == -1) {
-				if (vertexEdgesToAdd == -1) {
-					vertexEdgesToAdd = i;
-				}
-				numberOfVertex++;
-			}
-			outside++;
+	//makeSet + dodanie krawedzi do kolejki
+	for (int i = 0; i < edgesLeft; i++) {
+		parent[i] = i;
+		rank[i] = 0;
+		
+		for (int j = i + 1; j < edgesLeft; j++) {
+			int weight = neighborMatrix.valueInPosition(i, j);
+			if (weight) prioQueue.push(Edge{weight, i, j});
 		}
 	}
-	while (!prioQueue.empty()) prioQueue.pop();
+
+	Edge e;
+	while (!prioQueue.empty()) {
+		e = prioQueue.top();
+		prioQueue.pop();
+
+		// findSet
+		if (findSet(e.source, parent) != findSet(e.destination, parent)) {
+			// dodaj do macierzy
+			outputMatrix.addValue(e.source, e.destination, e.weight);
+			outputMatrix.addValue(e.destination, e.source, e.weight);
+
+			//union
+			unionSet(e.source, e.destination, rank, parent);
+		}
+	}
 
 	auto end = std::chrono::system_clock::now();
 	auto elapsed = end - start;
 	std::cout << elapsed.count() << '\n';
 
-	return outputList;
-}
-*/
-void MST::addToMatrix(int src, int dst, int weight, std::list<std::list<int>>& matrix) {
-	std::list<std::list<int>>::iterator outside = matrix.begin();
-
-	for (int i = 0; i < src; i++) outside++;
-
-	std::list<int>::iterator inside = outside->begin();
-
-	for (int i = 0; i < dst; i++) inside++;
-	*inside = weight;
-
-	outside = matrix.begin();
-
-	for (int i = 0; i < dst; i++) outside++;
-
-	inside = outside->begin();
-
-	for (int i = 0; i < src; i++) inside++;
-	*inside = weight;
+	displayMatrix(display);
 }
 
-void MST::addToList(int src, int dst, int weight, std::list<std::list<Neighbor>>& list) {
-	std::list<std::list<Neighbor>>::iterator outside = list.begin();
+void MST::algorithmKruskalList(bool display) {
+	outputList.clear();
+	while (!prioQueue.empty()) prioQueue.pop();
 
-	if (src > dst) {
-		int temp = src;
-		src = dst;
-		dst = temp;
+	auto start = std::chrono::system_clock::now();
+
+	int edgesLeft = neighborMatrix.size();
+
+	int* parent = new int[edgesLeft];
+	int* rank = new int[edgesLeft];
+	outputList.generateEmpty(edgesLeft);
+
+	ListMember<List<Neighbor>>* outer = neighborList.front();
+	ListMember<Neighbor>* inner = outer->data.front();
+	//makeSet + dodanie krawedzi do kolejki
+	for (int i = 0; i < edgesLeft; i++) {
+		parent[i] = i;
+		rank[i] = 0;
+
+		inner = outer->data.front();
+		while (inner) {
+			if (inner->data.destination >= i) prioQueue.push(Edge{ inner->data.weight, i, inner->data.destination });
+			inner = inner->next;
+		}
+		outer = outer->next;
 	}
 
-	for (int i = 0; i < src; i++) outside++;
+	Edge e;
+	while (!prioQueue.empty()) {
+		e = prioQueue.top();
+		prioQueue.pop();
 
-	if (outside->front().destination == -1) outside->front() = Neighbor{ weight, dst };
-	else outside->push_back(Neighbor{ weight, dst });
+		// findSet
+		if (findSet(e.source, parent) != findSet(e.destination, parent)) {
+			// dodaj do listy
+			outer = outputList.front();
+			if (e.source < e.destination) {
+				for (int i = 0; i < e.source; i++) outer = outer->next;
+				outer->data.push_back(Neighbor{ e.weight, e.destination });
+				for (int i = 0; i < (e.destination - e.source); i++) outer = outer->next;
+				outer->data.push_back(Neighbor{ e.weight, e.source });
+			}
+			else {
+				for (int i = 0; i < e.destination; i++) outer = outer->next;
+				outer->data.push_back(Neighbor{ e.weight, e.source });
+				for (int i = 0; i < (e.source - e.destination); i++) outer = outer->next;
+				outer->data.push_back(Neighbor{ e.weight, e.destination });
+			}
+			
+			//union
+			unionSet(e.source, e.destination, rank, parent);
+		}
+	}
 
-	for (int i = 0; i < (dst - src); i++) outside++;
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = end - start;
+	std::cout << elapsed.count() << '\n';
 
-	if (outside->front().destination == -1) outside->front() = Neighbor{ weight, src };
-	else outside->push_back(Neighbor{ weight, src });
+	displayList(display);
+}
+
+void MST::unionSet(int x, int y, int* rank, int* parent) {
+	/*
+	Union(x, y)
+		a = Find(x)
+		b = Find(y)
+		if rank[a] < rank[b]
+			parent[a] = b
+		else
+			parent[b] = a;
+	if rank[a] = rank[b]
+		rank[a] = rank[a] + 1
+	*/
+	int a = findSet(x, parent);
+	int b = findSet(y, parent);
+
+	if (rank[a] < rank[b]) parent[a] = b;
+	else parent[b] = a;
+
+	if (rank[a] = rank[b]) rank[a]++;
+}
+
+int MST::findSet(int x, int* parent) {
+	/*
+	Find(x)
+	if parent[x] <> x
+		parent[x] = Find(parent[x])
+		return parent[x]
+	*/
+	if (x != parent[x]) parent[x] = findSet(parent[x], parent);
+	return parent[x];
 }

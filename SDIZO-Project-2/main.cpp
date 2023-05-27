@@ -75,8 +75,8 @@ void menu_MST() {
 			// graph.algorithmPrimListN();
 			// graph.displayList(1);
 			// fsp.dijkstraMatrix(1);
-			mst.algorithmPrimMatrix();
-			mst.algorithmPrimList();
+			mst.algorithmPrimMatrix(1);
+			mst.algorithmPrimList(1);
 			
 			//std::list<std::list<int>> m = mst.algorithmPrimMatrix();
 			//mst.displayMSTMatrix(m);
@@ -86,10 +86,8 @@ void menu_MST() {
 			break;
 		}
 		case '5': {//tutaj algorytm Kruskala
-			//std::cout << "Podaj ilosc elementów tablicy:";
-			// std::cin >> value;
-			// myTab.generateTable(value);
-			// myTab.display();
+			mst.algorithmKruskalMatrix(1);
+			mst.algorithmKruskalList(1);
 			break;
 		}
 		}
@@ -130,6 +128,7 @@ void menu_FSP() {
 			break;
 
 		case '4': { //tutaj algorytm Dijkstry
+			// fsp.dijkstraMatrixHeap(1);
 			fsp.dijkstraList(1);
 			std::cout << "\n";
 			fsp.dijkstraMatrix(1);
