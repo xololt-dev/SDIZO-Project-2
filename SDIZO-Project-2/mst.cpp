@@ -2,8 +2,6 @@
 // Kruskal
 // Prim
 
-// Prim mo¿e inny sposób na liczenie kroków do koñca bêdzie szybszy
-// Poprawiæ macierz na tablicê[][]
 #include "mst.hpp"
 
 #include <fstream>
@@ -164,21 +162,20 @@ void MST::algorithmPrimMatrix(bool display) {
 		prioQueue.pop();
 	}
 
-	auto start = std::chrono::system_clock::now();
-	int edgesLeft = neighborMatrix.size() - 1;
+	int edgesLeft = neighborMatrix.size();
 	int vertexEdgesToAdd = 0;
-	List<int> vertLeft;
-	for (int i = 0; i <= edgesLeft; i++) {
-		vertLeft.push_back(i);
-	}
+
+	int* visited = new int[edgesLeft];
+
+	for (int i = 0; i < edgesLeft; i++) visited[i] = 0;
 
 	// generate "empty"
-	outputMatrix.generateEmpty(edgesLeft + 1);
+	outputMatrix.generateEmpty(edgesLeft--);
 
 	// dopóki nie sprawdzimy ka¿dego wierzcho³ka
 	while (edgesLeft) {
 		edgesLeft--;
-		vertLeft.deleteFromList(vertexEdgesToAdd);
+		visited[vertexEdgesToAdd] = 1;
 
 		// wype³nienie kolejki krawêdziami
 		// jeœli jest to wierzcho³ek który chcemy dodaæ
@@ -186,31 +183,15 @@ void MST::algorithmPrimMatrix(bool display) {
 		temp.source = vertexEdgesToAdd;
 
 		for (int i = 0; i < neighborMatrix.size(); i++) {
-			bool doWstawienia = 1;
-			temp.destination = i;
 			temp.weight = neighborMatrix.valueInPosition(vertexEdgesToAdd, i);
 
-			// jesli jest krawedz
-			if (outputMatrix.valueInPosition(vertexEdgesToAdd, i) != neighborMatrix.valueInPosition(vertexEdgesToAdd, i)) {
-				// jesli jest w kopcu
-				std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
-				while (!prioQueue.empty()) {
-					if (prioQueue.top().weight > temp.weight) break;
-					if (temp == prioQueue.top()) {
-						doWstawienia = 0;
-						break;
-					}
-					prioQueue.pop();
-				}
-				prioQueue = tempQueue;
+			if (!visited[i] && temp.weight) {
+				temp.destination = i;
+				prioQueue.push(temp);
 			}
-			else doWstawienia = 0;
-
-			if (doWstawienia) prioQueue.push(temp);
 		}
 
 		// wybranie krawêdzi
-		bool petla = 0;
 		int src, dest;
 		Edge toAdd;
 		do {
@@ -218,44 +199,30 @@ void MST::algorithmPrimMatrix(bool display) {
 			prioQueue.pop();
 			src = toAdd.source;
 			dest = toAdd.destination;
-			petla = 0;
 
-			int srcCount = 0;
-			int dstCount = 0;
-			for (int i = 0; i < neighborMatrix.size(); i++) {
-				if (outputMatrix.valueInPosition(src, i)) srcCount++;
-				if (outputMatrix.valueInPosition(dest, i)) dstCount++;
-				if (srcCount && dstCount) {
-					petla = 1;
-					break;
-				}
-			}
-		} while (petla);
+		} while (visited[src] && visited[dest]);
 
 		// dodaj do matrycy
 
 		outputMatrix.addValue(src, dest, toAdd.weight);
 		outputMatrix.addValue(dest, src, toAdd.weight);
 
-		if (!vertLeft.empty()) {
-			vertexEdgesToAdd = vertLeft.front()->data;
-			ListMember<int>* t = vertLeft.front();
-			while (t) {
-				if (t->data == toAdd.destination) {
-					vertexEdgesToAdd = toAdd.destination;
+		vertexEdgesToAdd = toAdd.destination;
+		if (visited[toAdd.destination]) {
+			for (int i = 0; i < neighborList.size(); i++) {
+				if (!visited[i]) {
+					vertexEdgesToAdd = i;
 					break;
 				}
-				t = t->next;
 			}
 		}
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
-	auto end = std::chrono::system_clock::now();
-	auto elapsed = end - start;
-	std::cout << elapsed.count() << '\n';
+	if (display) displayMatrix(display);
 
-	displayMatrix(display);
+	delete[] visited;
+	visited = nullptr;
 }
 
 void MST::algorithmPrimList(bool display) {
@@ -264,20 +231,19 @@ void MST::algorithmPrimList(bool display) {
 		prioQueue.pop();
 	}
 
-	int edgesLeft = this->neighborList.size() - 1;
+	int edgesLeft = neighborList.size();
 	int vertexEdgesToAdd = 0;
-	List<int> vertLeft;
-	for (int i = 0; i <= edgesLeft; i++) {
-		vertLeft.push_back(i);
-	}
+	int* visited = new int[edgesLeft];
+
+	for (int i = 0; i < edgesLeft; i++)	visited[i] = 0;
 
 	// generate "empty"
-	outputList.generateEmpty(edgesLeft + 1);
+	outputList.generateEmpty(edgesLeft--);
 
 	// dopóki nie sprawdzimy ka¿dego wierzcho³ka
 	while (edgesLeft) {
 		edgesLeft--;
-		vertLeft.deleteFromList(vertexEdgesToAdd);
+		visited[vertexEdgesToAdd] = 1;
 
 		ListMember<List<Neighbor>>* listOvrl = neighborList.front();
 		ListMember<List<Neighbor>>* listOut = outputList.front();
@@ -295,44 +261,17 @@ void MST::algorithmPrimList(bool display) {
 
 		while (listInside) {
 			// jesli po³¹czenie
-			// czy to potrzebne
-			bool doWstawienia = 1;
-			temp.destination = listInside->data.destination;
-			temp.weight = listInside->data.weight;
+			if (!visited[listInside->data.destination]) {
+				temp.destination = listInside->data.destination;
+				temp.weight = listInside->data.weight;
 
-			// jesli bylo brane pod uwage
-			if (!listOut->data.empty()) {
-				ListMember<Neighbor>* listOutInside = listOut->data.front();
-
-				while (listOutInside) {
-					if (listOutInside->data.destination == temp.destination) {
-						doWstawienia = 0;
-						break;
-					}
-					listOutInside = listOutInside->next;
-				}
+				prioQueue.push(temp);
 			}
 
-			if (doWstawienia) {
-				// jesli jest w kopcu
-				std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> tempQueue = prioQueue;
-				while (!prioQueue.empty()) {
-					if (prioQueue.top().weight > temp.weight) break;
-					if (temp == prioQueue.top()) {
-						doWstawienia = 0;
-						break;
-					}
-					prioQueue.pop();
-				}
-				prioQueue = tempQueue;
-			}
-
-			if (doWstawienia) prioQueue.push(temp);
 			listInside = listInside->next;
 		}
 
 		// wybranie krawêdzi
-		bool petla = 0;
 		int src, dest;
 		Edge toAdd;
 		do {
@@ -340,17 +279,9 @@ void MST::algorithmPrimList(bool display) {
 			prioQueue.pop();
 			src = toAdd.source;
 			dest = toAdd.destination;
-			petla = 0;
+		} while (visited[src] && visited[dest]);
 
-			listOut = outputList.front();
-			ListMember<List<Neighbor>>* listOutSecond = outputList.front();
-			for (int i = 0; i < src; i++) listOutSecond = listOutSecond->next;
-			for (int i = 0; i < dest; i++) listOut = listOut->next;
-
-			petla = !(listOut->data.empty() || listOutSecond->data.empty());
-		} while (petla);
-
-		// dodaj do matrycy
+		// dodaj do listy
 
 		listOut = outputList.front();
 		if (toAdd.source < toAdd.destination) {
@@ -367,22 +298,23 @@ void MST::algorithmPrimList(bool display) {
 		}
 
 		listOut = outputList.front();
-		// vertexEdgesToAdd = toAdd.destination;
-		if (!vertLeft.empty()) {
-			vertexEdgesToAdd = vertLeft.front()->data;
-			ListMember<int>* t = vertLeft.front();
-			while (t) {
-				if (t->data == toAdd.destination) {
-					vertexEdgesToAdd = toAdd.destination;
+		
+		vertexEdgesToAdd = toAdd.destination;
+		if (visited[toAdd.destination]) {
+			for (int i = 0; i < neighborList.size(); i++) {
+				if (!visited[i]) {
+					vertexEdgesToAdd = i;
 					break;
 				}
-				t = t->next;
 			}
 		}
 	}
 	while (!prioQueue.empty()) prioQueue.pop();
 
-	displayList(display);
+	if (display) displayList(display);
+
+	delete[] visited;
+	visited = nullptr;
 }
 
 void MST::algorithmKruskalMatrix(bool display) {
@@ -425,18 +357,17 @@ void MST::algorithmKruskalMatrix(bool display) {
 		}
 	}
 
-	auto end = std::chrono::system_clock::now();
-	auto elapsed = end - start;
-	std::cout << elapsed.count() << '\n';
+	if (display) displayMatrix(display);
 
-	displayMatrix(display);
+	delete[] parent;
+	parent = nullptr;
+	delete[] rank;
+	rank = nullptr;
 }
 
 void MST::algorithmKruskalList(bool display) {
 	outputList.clear();
 	while (!prioQueue.empty()) prioQueue.pop();
-
-	auto start = std::chrono::system_clock::now();
 
 	int edgesLeft = neighborMatrix.size();
 
@@ -486,11 +417,12 @@ void MST::algorithmKruskalList(bool display) {
 		}
 	}
 
-	auto end = std::chrono::system_clock::now();
-	auto elapsed = end - start;
-	std::cout << elapsed.count() << '\n';
+	if (display) displayList(display);
 
-	displayList(display);
+	delete[] parent;
+	parent = nullptr;
+	delete[] rank;
+	rank = nullptr;
 }
 
 void MST::unionSet(int x, int y, int* rank, int* parent) {
