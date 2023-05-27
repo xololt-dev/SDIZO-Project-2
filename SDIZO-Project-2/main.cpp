@@ -48,9 +48,6 @@ void menu_MST() {
 			mst.readFromFile(fileName);
 			mst.displayList();
 			mst.displayMatrix();
-			// graph.readFromFile(fileName);
-			// graph.displayList();
-			// graph.displayMatrix();
 			break;
 
 		case '2': //tutaj generowanie grafu
@@ -58,36 +55,26 @@ void menu_MST() {
 			std::cin >> amount;
 			std::cout << " Podaj gestosc (calkowite %): ";
 			std::cin >> density;
-			// mst.generateGraph(amount, density);
-			// mst.generateGraph(amount, density);
 			mst.generateGraph(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
-			// mst.displayMST();
-			// mst.displayList();
-			// mst.displayMatrix();
 			mst.displayList();
 			mst.displayMatrix();
 			break;
 
 		case '4': {//tutaj algorytm Prima
-			// graph.algorithmPrimListN();
-			// graph.displayList(1);
-			// fsp.dijkstraMatrix(1);
-			mst.algorithmPrimMatrix(1);
-			mst.algorithmPrimList(1);
-			
-			//std::list<std::list<int>> m = mst.algorithmPrimMatrix();
-			//mst.displayMSTMatrix(m);
-			//std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
-			//mst.displayMSTList(l);
-
+			mst.algorithmPrimMatrix();
+			mst.displayMatrix(1);
+			mst.algorithmPrimList();
+			mst.displayList(1);
 			break;
 		}
 		case '5': {//tutaj algorytm Kruskala
-			mst.algorithmKruskalMatrix(1);
-			mst.algorithmKruskalList(1);
+			mst.algorithmKruskalMatrix();
+			mst.displayMatrix(1);
+			mst.algorithmKruskalList();
+			mst.displayList(1);
 			break;
 		}
 		}
