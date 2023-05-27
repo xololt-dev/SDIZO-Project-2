@@ -10,7 +10,7 @@
 
 MST::~MST()
 {
-	while (!prioQueue.empty()) prioQueue.pop();
+	freeHeap();
 	neighborMatrix.clear();
 	neighborList.clear();
 }
@@ -24,7 +24,7 @@ void MST::readFromFile(std::string FileName) {
 		int edgesAmount = 0, vertexAmount = 0;
 		int temp = 0;
 		
-		while (!prioQueue.empty()) prioQueue.pop();
+		freeHeap();
 		if (!neighborList.empty()) neighborList.clear();
 		if (!neighborMatrix.empty()) neighborMatrix.clear();
 
@@ -74,7 +74,7 @@ void MST::generateGraph(int sideLength, int density) {
 	if (edgesLeft < sideLength || !sideLength || !density) return;
 
 	// cleanup
-	while (!prioQueue.empty()) prioQueue.pop();
+	freeHeap();
 	neighborList.clear();
 	neighborMatrix.clear();
 
@@ -158,9 +158,8 @@ void MST::generateGraph(int sideLength, int density) {
 
 void MST::algorithmPrimMatrix(bool display) {
 	outputMatrix.clear();
-	while (!prioQueue.empty()) {
-		prioQueue.pop();
-	}
+
+	freeHeap();
 
 	int edgesLeft = neighborMatrix.size();
 	int vertexEdgesToAdd = 0;
@@ -187,7 +186,7 @@ void MST::algorithmPrimMatrix(bool display) {
 
 			if (!visited[i] && temp.weight) {
 				temp.destination = i;
-				prioQueue.push(temp);
+				prioQueueNew.push(temp);
 			}
 		}
 
@@ -195,8 +194,9 @@ void MST::algorithmPrimMatrix(bool display) {
 		int src, dest;
 		Edge toAdd;
 		do {
-			toAdd = prioQueue.top();
-			prioQueue.pop();
+			// toAdd = prioQueue.top();
+			// prioQueue.pop();
+			toAdd = prioQueueNew.pop();
 			src = toAdd.source;
 			dest = toAdd.destination;
 
@@ -217,7 +217,7 @@ void MST::algorithmPrimMatrix(bool display) {
 			}
 		}
 	}
-	while (!prioQueue.empty()) prioQueue.pop();
+	freeHeap();
 
 	if (display) displayMatrix(display);
 
@@ -227,9 +227,7 @@ void MST::algorithmPrimMatrix(bool display) {
 
 void MST::algorithmPrimList(bool display) {
 	outputList.clear();
-	while (!prioQueue.empty()) {
-		prioQueue.pop();
-	}
+	freeHeap();
 
 	int edgesLeft = neighborList.size();
 	int vertexEdgesToAdd = 0;
@@ -265,7 +263,7 @@ void MST::algorithmPrimList(bool display) {
 				temp.destination = listInside->data.destination;
 				temp.weight = listInside->data.weight;
 
-				prioQueue.push(temp);
+				prioQueueNew.push(temp);
 			}
 
 			listInside = listInside->next;
@@ -275,8 +273,10 @@ void MST::algorithmPrimList(bool display) {
 		int src, dest;
 		Edge toAdd;
 		do {
-			toAdd = prioQueue.top();
-			prioQueue.pop();
+			// toAdd = prioQueue.top();
+			// prioQueue.pop();
+			toAdd = prioQueueNew.pop();
+
 			src = toAdd.source;
 			dest = toAdd.destination;
 		} while (visited[src] && visited[dest]);
@@ -309,7 +309,7 @@ void MST::algorithmPrimList(bool display) {
 			}
 		}
 	}
-	while (!prioQueue.empty()) prioQueue.pop();
+	freeHeap();
 
 	if (display) displayList(display);
 
@@ -319,9 +319,7 @@ void MST::algorithmPrimList(bool display) {
 
 void MST::algorithmKruskalMatrix(bool display) {
 	outputMatrix.clear();
-	while (!prioQueue.empty()) {
-		prioQueue.pop();
-	}
+	freeHeap();
 
 	auto start = std::chrono::system_clock::now();
 	int edgesLeft = neighborMatrix.size();
@@ -337,14 +335,15 @@ void MST::algorithmKruskalMatrix(bool display) {
 		
 		for (int j = i + 1; j < edgesLeft; j++) {
 			int weight = neighborMatrix.valueInPosition(i, j);
-			if (weight) prioQueue.push(Edge{weight, i, j});
+			if (weight) prioQueueNew.push(Edge{ weight, i, j }); // prioQueue.push(Edge{weight, i, j});
 		}
 	}
 
 	Edge e;
-	while (!prioQueue.empty()) {
-		e = prioQueue.top();
-		prioQueue.pop();
+	while (!prioQueueNew.empty()) {
+		// e = prioQueue.top();
+		// prioQueue.pop();
+		e = prioQueueNew.pop();
 
 		// findSet
 		if (findSet(e.source, parent) != findSet(e.destination, parent)) {
@@ -367,7 +366,7 @@ void MST::algorithmKruskalMatrix(bool display) {
 
 void MST::algorithmKruskalList(bool display) {
 	outputList.clear();
-	while (!prioQueue.empty()) prioQueue.pop();
+	freeHeap();
 
 	int edgesLeft = neighborMatrix.size();
 
@@ -384,16 +383,16 @@ void MST::algorithmKruskalList(bool display) {
 
 		inner = outer->data.front();
 		while (inner) {
-			if (inner->data.destination >= i) prioQueue.push(Edge{ inner->data.weight, i, inner->data.destination });
+			if (inner->data.destination >= i) prioQueueNew.push(Edge{ inner->data.weight, i, inner->data.destination });
 			inner = inner->next;
 		}
 		outer = outer->next;
 	}
 
 	Edge e;
-	while (!prioQueue.empty()) {
-		e = prioQueue.top();
-		prioQueue.pop();
+	while (!prioQueueNew.empty()) {
+		// e = prioQueue.top();
+		e = prioQueueNew.pop();
 
 		// findSet
 		if (findSet(e.source, parent) != findSet(e.destination, parent)) {
