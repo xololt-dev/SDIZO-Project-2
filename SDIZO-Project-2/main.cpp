@@ -115,29 +115,8 @@ void menu_FSP() {
 			break;
 
 		case '4': { //tutaj algorytm Dijkstry
-			// fsp.dijkstraMatrixHeap(1);
 			fsp.dijkstraList(1);
-			std::cout << "\n";
-			auto start = std::chrono::high_resolution_clock::now();
-			auto result = std::chrono::nanoseconds::zero();
-			for (int i = 0; i < 1000; i++) {
-				start = std::chrono::high_resolution_clock::now();
-				fsp.dijkstraMatrix();
-				result += std::chrono::high_resolution_clock::now() - start;
-			}
-			std::cout << result.count() / 1000;
-
-			std::cout << "\n";
-			std::cout << "\n";
-
-			result = std::chrono::nanoseconds::zero();
-			for (int i = 0; i < 1000; i++) {
-				start = std::chrono::high_resolution_clock::now();
-				fsp.dijkstraMatrixHeap();
-				result += std::chrono::high_resolution_clock::now() - start;
-			}
-			std::cout << result.count() / 1000 << "\n";
-			
+			fsp.dijkstraMatrix(1);
 			break;
 		}
 		case '5': { //tutaj algorytm Forda-Bellmana
