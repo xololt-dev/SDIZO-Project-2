@@ -1,16 +1,19 @@
 #include <iostream>
 #include <conio.h>
 #include <string>
+#include <chrono>
 
+#include "graph.hpp"
 #include "mst.hpp"
+#include "fsp.hpp"
 
 void displaySubMenu(std::string info);
 void displayMainMenu();
 
 MST mst;
+FSP fsp;
 
-int main()
-{
+int main() {
 	displayMainMenu();
 	return 0;
 }
@@ -21,14 +24,15 @@ void displaySubMenu(std::string info) {
 	std::cout << "1. Wczytaj z pliku" << std::endl;
 	std::cout << "2. Utworz losowo" << std::endl;
 	std::cout << "3. Wyswietl" << std::endl;
-	std::cout << "4. Algorytm 1" << std::endl;
-	std::cout << "5. Algorytm 2" << std::endl;
+	info == "--- MST ---" ? 
+		std::cout << "4. Algorytm Prima" << std::endl : std::cout << "4. Algorytm Dijkstry" << std::endl;
+	info == "--- MST ---" ?
+		std::cout << "5. Algorytm Kruskala" << std::endl : std::cout << "5. Algorytm Forda-Bellmana" << std::endl;
 	std::cout << "0. Powrot do menu" << std::endl;
 	std::cout << "Podaj opcje:";
 }
 
-void menu_MST()
-{
+void menu_MST() {
 	char opt;
 	std::string fileName;
 	int amount, density;
@@ -41,9 +45,9 @@ void menu_MST()
 		case '1': //tutaj wczytytwanie z pliku
 			std::cout << " Podaj nazwê zbioru:";
 			std::cin >> fileName;
-			mst.readFromFileNew(fileName);
-			mst.displayList2();
-			mst.displayMatrix2();
+			mst.readFromFile(fileName);
+			mst.displayList();
+			mst.displayMatrix();
 			break;
 
 		case '2': //tutaj generowanie grafu
@@ -51,29 +55,74 @@ void menu_MST()
 			std::cin >> amount;
 			std::cout << " Podaj gestosc (calkowite %): ";
 			std::cin >> density;
-			// mst.generateGraph(amount, density);
-			mst.generateGraphNew(amount, density);
+			mst.generateGraph(amount, density);
 			break;
 
 		case '3': //tutaj wyœwietlanie
-			// mst.displayMST();
-			mst.displayList2();
-			mst.displayMatrix2();
+			mst.displayList();
+			mst.displayMatrix();
 			break;
 
 		case '4': {//tutaj algorytm Prima
-			std::list<std::list<int>> m = mst.algorithmPrimMatrix();
-			mst.displayMSTMatrix(m);
-			std::list<std::list<Neighbor>> l = mst.algorithmPrimList();
-			mst.displayMSTList(l);
-
+			mst.algorithmPrimMatrix();
+			mst.displayMatrix(1);
+			mst.algorithmPrimList();
+			mst.displayList(1);
 			break;
 		}
 		case '5': {//tutaj algorytm Kruskala
-			//std::cout << "Podaj ilosc elementów tablicy:";
-			// std::cin >> value;
-			// myTab.generateTable(value);
-			// myTab.display();
+			mst.algorithmKruskalMatrix();
+			mst.displayMatrix(1);
+			mst.algorithmKruskalList();
+			mst.displayList(1);
+			break;
+		}
+		}
+	} while (opt != '0');
+}
+
+void menu_FSP() {
+	char opt;
+	std::string fileName;
+	int amount, density;
+
+	do {
+		displaySubMenu("--- FSP ---");
+		opt = _getche();
+		std::cout << std::endl;
+		switch (opt) {
+		case '1': //tutaj wczytytwanie z pliku
+			std::cout << " Podaj nazwê zbioru:";
+			std::cin >> fileName;
+
+			fsp.readFromFile(fileName);
+			fsp.displayList();
+			fsp.displayMatrix();
+			break;
+
+		case '2': //tutaj generowanie grafu
+			std::cout << " Podaj ilosc wierzcholkow: ";
+			std::cin >> amount;
+			std::cout << " Podaj gestosc (calkowite %): ";
+			std::cin >> density;
+
+			fsp.generateGraph(amount, density);
+			break;
+
+		case '3': //tutaj wyœwietlanie
+			fsp.displayList();
+			fsp.displayMatrix();
+			break;
+
+		case '4': { //tutaj algorytm Dijkstry
+			fsp.dijkstraList(1);
+			fsp.dijkstraMatrix(1);
+			break;
+		}
+		case '5': { //tutaj algorytm Forda-Bellmana
+			fsp.fordBellmanList(1);
+			fsp.fordBellmanMatrix(1);
+
 			break;
 		}
 		}
@@ -100,7 +149,7 @@ void displayMainMenu() {
 			break;
 
 		case '2':
-			// menu_list();
+			menu_FSP();
 			break;
 
 		case '3':

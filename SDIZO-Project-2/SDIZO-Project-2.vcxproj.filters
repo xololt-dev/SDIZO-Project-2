@@ -15,16 +15,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClInclude Include="mst.hpp">
       <Filter>Pliki zasobów</Filter>
-    </ClCompile>
-    <ClCompile Include="mst.cpp">
+    </ClInclude>
+    <ClInclude Include="fsp.hpp">
       <Filter>Pliki zasobów</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="util.hpp">
+      <Filter>Pliki zasobów</Filter>
+    </ClInclude>
+    <ClInclude Include="graph.hpp">
+      <Filter>Pliki zasobów</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mst.hpp">
+    <ClCompile Include="main.cpp">
       <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
+    </ClCompile>
+    <ClCompile Include="mst.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="graph.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="fsp.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
