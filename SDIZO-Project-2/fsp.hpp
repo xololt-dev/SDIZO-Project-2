@@ -10,7 +10,7 @@ public:
 	void generateGraph(int sideLength, int density);
 
 	void dijkstraMatrix(bool display = 0);
-	void dijkstraMatrixHeap(bool display = 0);
+	void dijkstraMatrixOld(bool display = 0);
 	void dijkstraList(bool display = 0);
 	void fordBellmanMatrix(bool display = 0);
 	void fordBellmanList(bool display = 0);

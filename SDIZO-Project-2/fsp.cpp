@@ -129,8 +129,7 @@ void FSP::generateGraph(int sideLength, int density) {
 	}
 }
 
-void FSP::dijkstraMatrix(bool display) {
-	//auto start = std::chrono::high_resolution_clock::now();
+void FSP::dijkstraMatrixOld(bool display) {
 	// setup
 	int numberOfVertex = neighborMatrix.size();
 
@@ -184,12 +183,7 @@ void FSP::dijkstraMatrix(bool display) {
 		}
 	}
 
-	//auto end = std::chrono::high_resolution_clock::now();
-	//auto diff = end - start;
-	
 	if (display) {
-		//std::cout << diff.count() << std::endl;
-
 		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
 			std::cout << i << " ";
@@ -212,13 +206,11 @@ void FSP::dijkstraMatrix(bool display) {
 	p = nullptr;
 }
 
-void FSP::dijkstraMatrixHeap(bool display) {
+void FSP::dijkstraMatrix(bool display) {
 	while (!prioQueueNew.empty()) prioQueueNew.pop();
-	// prioQueueNew.resize();
 
 	// setup
 	int numberOfVertex = neighborMatrix.size();
-	int left = 0;
 
 	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
 	int* s = new int[numberOfVertex];
@@ -247,7 +239,6 @@ void FSP::dijkstraMatrixHeap(bool display) {
 			
 			d[e.destination] = e.weight;
 			p[e.destination] = e.source;
-
 			for (int i = 0; i < numberOfVertex; i++) {
 				if (i != e.destination) {
 					int weight = neighborMatrix.valueInPosition(e.destination, i);
@@ -256,15 +247,10 @@ void FSP::dijkstraMatrixHeap(bool display) {
 					}
 				}
 			}
-		}		
+		}
 	}
-	// prioQueueNew.resize();
-	//auto end = std::chrono::high_resolution_clock::now();
-	//auto diff = end - start;
 
 	if (display) {
-		// std::cout << diff.count() << std::endl;
-
 		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
 			std::cout << i << " ";
@@ -287,71 +273,57 @@ void FSP::dijkstraMatrixHeap(bool display) {
 	s = nullptr;
 	delete[] p;
 	p = nullptr;
-
-	// prioQueueNew.release();
 }
 
 void FSP::dijkstraList(bool display) {
+	while (!prioQueueNew.empty()) prioQueueNew.pop();
 	// setup
 	int numberOfVertex = neighborList.size();
 
 	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
-	List<int> q, s;
-	for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
-
+	int* s = new int[numberOfVertex];
 	int* d = new int[numberOfVertex];
 	int* p = new int[numberOfVertex];
 	for (int i = 0; i < numberOfVertex; i++) {
+		s[i] = 0;
 		p[i] = -1;
-		if (i) d[i] = INT_MAX;
-		else d[i] = 0;
+		d[i] = INT_MAX;
 	}
+	d[startVertexIndex] = 0;
 
+	prioQueueNew.push(Edge{ 0, -1, startVertexIndex });
+	
+	Edge e;
 	// wlasciwy algorytm
-	while (!q.empty()) {
+	while (!prioQueueNew.empty()) {
 		// znajdz najmniejszy koszt dojscia
-		int lowestIndex = 0;
-		int lowestAmount = INT_MAX;
-		for (int i = 0; i < numberOfVertex; i++) {
-			if (d[i] < lowestAmount) {
-				ListMember<int>* frnt = s.front();
-				bool input = 1;
-				while (frnt) {
-					if (frnt->data == i) {
-						input = 0;
-						break;
-					}
-					frnt = frnt->next;
-				}
-				if (input) {
-					lowestIndex = i;
-					lowestAmount = d[i];
-				}
-			}
-		}
+		do {
+			e = prioQueueNew.pop();
+		} while (d[e.destination] < e.weight);
+		
+		if (e != Edge{ NULL, NULL, NULL }) {
+			// usun ze zbioru q, wstaw do s
+			s[e.destination] = 1;
 
-		// usun ze zbioru q, wstaw do s
-		q.deleteFromList(lowestIndex);
-		s.push_back(lowestIndex);
+			d[e.destination] = e.weight;
+			p[e.destination] = e.source;
 
-		ListMember<List<Neighbor>>* iterator = neighborList.front();
-		int i = 0;
-		while (iterator) {
-			if (i == lowestIndex) {
-				ListMember<Neighbor>* innerIter = iterator->data.front();
-				while (innerIter) {
-					int weight = innerIter->data.weight;
-					int index = innerIter->data.destination;// neighborMatrix.valueInPosition(lowestIndex, i);
-					if (d[index] > lowestAmount + weight && weight) {
-						d[index] = lowestAmount + weight;
-						p[index] = lowestIndex;
+			ListMember<List<Neighbor>>* outer = neighborList.front();
+			int i = 0;
+			while (outer) {
+				if (i == e.destination) {
+					ListMember<Neighbor>* inner = outer->data.front();
+					while (inner) {
+						if (d[inner->data.destination] > d[i] + inner->data.weight && !s[inner->data.destination]) {
+							prioQueueNew.push(Edge{ d[i] + inner->data.weight, i, inner->data.destination });
+						}
+						inner = inner->next;
 					}
-					innerIter = innerIter->next;
+					break;
 				}
-				break;
+				outer = outer->next;
+				i++;
 			}
-			iterator = iterator->next;
-			i++;
 		}
 	}
 
@@ -373,7 +345,11 @@ void FSP::dijkstraList(bool display) {
 
 	// release resources
 	delete[] d;
+	d = nullptr;
 	delete[] p;
+	p = nullptr;
+	delete[] s;
+	s = nullptr;
 }
 
 void FSP::fordBellmanMatrix(bool display) {
