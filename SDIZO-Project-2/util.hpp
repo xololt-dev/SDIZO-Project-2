@@ -128,6 +128,8 @@ public:
 	bool empty();
 	void release();
 
+	void display();
+	void displayHeap(int index);
 private:
 	Edge* tab;
 	int cnt;		// amount of values in table

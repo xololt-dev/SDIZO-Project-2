@@ -112,15 +112,16 @@ void Heap::heapify(int index) {
 	int l = 2 * index + 1;
 	int r = 2 * index + 2;
 
-	if (l <= cnt && tab[l] < tab[index]) smallest = l;
+	if (l < cnt && tab[l] < tab[index]) smallest = l;
 	else smallest = index;
 
-	if (r <= cnt && tab[r] < tab[smallest]) smallest = r;
+	if (r < cnt && tab[r] < tab[smallest]) smallest = r;
 
 	if (smallest != index) {
 		Edge temp = tab[index];
 		tab[index] = tab[smallest];
 		tab[smallest] = temp;
+		// display();
 		heapify(smallest);
 	}
 }
@@ -148,21 +149,27 @@ bool Heap::isValueInHeap(Edge value)
 /// Insert value to the heap
 /// </summary>
 /// <param name="value - value to be inserted"></param>
-void Heap::push(Edge value)
-{
+void Heap::push(Edge value) {
 	// jesli nie ma miejsca, realokujemy
 	if (cnt == tab_size) resize();
 
-	int i = ++cnt;
-	int parent = floor(i / 2);
-
-	while (i > 1 && tab[parent - 1] > value) {
-		tab[i - 1] = tab[parent - 1];
-		i = parent;
-		parent = (int) floor(i / 2);
+	if (!cnt) {
+		tab[0] = value;
+		cnt++;
+		return;
 	}
 
-	tab[i - 1] = value;
+	int i = cnt;
+	int parent = floor((i - 1) / 2);
+
+	while (i > 0 && tab[parent] > value) {
+		tab[i] = tab[parent];
+		i = parent;
+		parent = (int) floor((i - 1) / 2);
+	}
+
+	cnt++;
+	tab[i] = value;
 }
 
 /// <summary>
@@ -170,17 +177,26 @@ void Heap::push(Edge value)
 /// </summary>
 Edge Heap::pop() {
 	Edge root = Edge{ NULL, NULL, NULL };
+	//std::cout << "Pop\n";
 	if (!cnt) {
 		// std::cout << "Kopiec pusty!" << std::endl;
 		return root;
 	}
 	root = tab[0];
-	//tab[0] = tab[--cnt];
-	//tab[cnt + 1] = Edge{NULL, NULL, NULL};
-	tab[0] = tab[--cnt];
-	tab[cnt] = Edge{ NULL, NULL, NULL };
-
-	heapify(0);
+	
+	if (cnt > 1) {
+		tab[0] = tab[--cnt];
+		//display();
+		tab[cnt] = Edge{ NULL, NULL, NULL };
+		//display();
+		heapify(0);
+		//std::cout << "Po heapify\n";
+		//display();
+	}
+	else {
+		tab[0] = Edge{ NULL, NULL, NULL };
+		cnt--;
+	}
 
 	return root;
 }
@@ -194,8 +210,8 @@ bool Heap::empty() {
 /// </summary>
 void Heap::resize() {
 	int new_size = cnt;
-	if (cnt > 0) {
-		new_size = pow(2, ceil(log2(cnt)) + 1) - 1;
+	if (cnt > 5) {
+		new_size = 2 * cnt;// pow(2, ceil(log2(cnt)) + 1) - 1;
 	}
 	else new_size = 6;
 
@@ -224,4 +240,37 @@ void Heap::release() {
 	delete[] tab;
 	tab = nullptr;
 	tab_size = cnt = 0;
+}
+
+void Heap::display() {
+	std::cout << "Size: " << cnt << "\n";
+	for (int i = 0; i < cnt; i++) {
+		std::cout << tab[i].weight << " ";
+	}
+	std::cout << "\n";
+
+	if (cnt || tab != NULL) {
+		std::cout << "'--";
+		std::cout << tab[0].weight << std::endl;
+	}
+	displayHeap(1);
+	displayHeap(2);
+}
+
+void Heap::displayHeap(int index)
+{
+	if (index >= cnt) return;
+
+	float n = floor(log2(index + 1));
+
+	while (n > 0) {
+		std::cout << "   ";
+		n--;
+	}
+	if (cnt > index + 1 && index % 2 == 1) std::cout << "|--";
+	else std::cout << "'--";
+	std::cout << tab[index].weight << std::endl;
+
+	displayHeap(2 * index + 1);
+	displayHeap(2 * index + 2);
 }
