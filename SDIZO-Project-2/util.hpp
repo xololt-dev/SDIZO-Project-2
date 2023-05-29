@@ -40,8 +40,17 @@ inline bool operator>(const Edge& lhs, const Edge& rhs) {
 struct Neighbor {
 	int weight;
 	int destination;
-	int parent;
-	int rank;
+	// int parent;
+	// int rank;
+
+	/*
+	inline bool operator!=(const Neighbor& rhs) {
+		return (destination != rhs.destination || parent != rhs.parent || weight != rhs.weight || rank != rhs.rank);
+	}
+	*/
+	inline bool operator!=(const Neighbor& rhs) {
+		return (destination != rhs.destination || weight != rhs.weight);
+	}
 };
 
 template <typename T> struct ListMember {
@@ -226,6 +235,46 @@ template<typename T> void List<T>::deleteFromList(T value) {
 	if (!cnt) return;
 
 	ListMember<T>* temp = firstMember;
+
+	for (int i = 0; i < cnt; i++) {
+		// go through each list member until value is found
+		if (temp->data != value) {
+			temp = temp->next;
+		}
+		else {
+			if (temp->prev == NULL) {
+				if (temp->next == NULL) firstMember = lastMember = NULL;
+				else {
+					temp->next->prev = NULL;
+					firstMember = temp->next;
+				}
+			}
+			else {
+				if (temp->next == NULL) {
+					lastMember = temp->prev;
+					temp->prev->next = NULL;
+				}
+				else temp->next->prev = temp->prev;
+
+				temp->prev->next = temp->next;
+			}
+
+			delete temp;
+
+			cnt--;
+
+			return;
+		}
+	}
+	// if value not found, return a message
+	// std::cout << "Nie znaleziono wartosci do usuniecia!\n";
+}
+
+template<> inline void List<Neighbor>::deleteFromList(Neighbor value) {
+	// if list is empty, return with information
+	if (!cnt) return;
+
+	ListMember<Neighbor>* temp = firstMember;
 
 	for (int i = 0; i < cnt; i++) {
 		// go through each list member until value is found
