@@ -33,7 +33,7 @@ void FSP::readFromFile(std::string FileName) {
 			iterList = neighborList.front();
 
 			for (int i = 0; i < tempEdge.source; i++) iterList = iterList->next;
-			iterList->data.push_back(Neighbor{ tempEdge.weight, tempEdge.destination, 0, 0 });
+			iterList->data.push_back(Neighbor{ tempEdge.weight, tempEdge.destination });
 
 			neighborMatrix.addValue(tempEdge.source, tempEdge.destination, tempEdge.weight);
 		}
@@ -43,167 +43,139 @@ void FSP::readFromFile(std::string FileName) {
 }
 
 void FSP::generateGraph(int sideLength, int density) {
-	int random, edgesLeft = sideLength * (sideLength - 1) * density / 100;
-	if (edgesLeft < sideLength || !sideLength || !density) return;
+	if (density > 95) {
+		if (!sideLength) return;
+		// cleanup
+		while (!prioQueueNew.empty()) prioQueueNew.pop();
+		// prioQueueNew.resize();
+		neighborList.clear();
+		neighborMatrix.clear();
+		int randValue = INT_MAX-1;
 
-	// cleanup
-	while (!prioQueueNew.empty()) prioQueueNew.pop();
-	// prioQueueNew.resize();
-	neighborList.clear();
-	neighborMatrix.clear();
+		srand(time(NULL));
 
-	int randValue = 19;
-	List<int> remainingVertexToPointTo;
+		neighborList.generateEmpty(sideLength);
+		neighborMatrix.generateEmpty(sideLength);
 
-	srand(time(NULL));
+		ListMember<List<Neighbor>>* iterList = neighborList.front();
 
-	neighborList.generateEmpty(sideLength);
-	neighborMatrix.generateEmpty(sideLength);
-	for (int i = 0; i < sideLength; i++) remainingVertexToPointTo.push_back(i);
-	startVertexIndex = 0;
+		for (int i = 0; i < sideLength; i++) {
+			for (int j = 0; j < sideLength; j++) {
+				if (i != j) {
+					int weight = 1 + rand() % randValue;
+					iterList->data.push_back(Neighbor{ weight, j });
+					neighborMatrix.addValue(i, j, weight);
+				}				
+			}
+			iterList = iterList->next;
+		}
 
-	Edge e;
-	ListMember<List<Neighbor>>* iterList = neighborList.front();
-
-	// dojscie do kazdego wierzcholka
-	for (int i = 0; i < sideLength; i++) {
-		e.destination = i;
-		do {
-			e.source = rand() % sideLength;
-		} while (e.source == i);
-		e.weight = 1 + rand() % randValue;
-		
+		int edgesToDelete = sideLength * (sideLength - 1) * (100 - density) / 100;
 		iterList = neighborList.front();
-		for (int i = 0; i < e.source; i++) iterList = iterList->next;
 
-		iterList->data.push_back(Neighbor{ e.weight, e.destination, 0, 0 });
-		neighborMatrix.addValue(e.source, e.destination, e.weight);
-		edgesLeft--;
-	}
-	
-	while (edgesLeft) {
-		// wyznaczenie pierwszego wierzcho³ka
-		do {
-			random = rand() % sideLength;
+		int i = 0;
+		while (edgesToDelete > 0) {
+			int random = rand() % sideLength;
 			iterList = neighborList.front();
 			for (int i = 0; i < random; i++) iterList = iterList->next;
-		} while (iterList->data.size() >= sideLength - 1);
-		
-		
-		/*
-		List<int> exists;
-		
+			ListMember<Neighbor>* inner = iterList->data.front();
+			for (int i = 0; i < random; i++) {
+				if (inner->next) inner = inner->next;
+				else break;
+			}
+			Neighbor temp = inner->data;
+
+			iterList->data.deleteFromList(temp);
+			neighborMatrix.deleteValue(random, temp.destination);
+
+			edgesToDelete--;
+		}
+	}
+	else {
+		int random, edgesLeft = sideLength * (sideLength - 1) * density / 100;
+		if (edgesLeft < sideLength || !sideLength || !density) return;
+
+		// cleanup
+		while (!prioQueueNew.empty()) prioQueueNew.pop();
+		// prioQueueNew.resize();
+		neighborList.clear();
+		neighborMatrix.clear();
+
+		int randValue = INT_MAX - 1;
+		List<int> remainingVertexToPointTo;
+
+		srand(time(NULL));
+
+		neighborList.generateEmpty(sideLength);
+		neighborMatrix.generateEmpty(sideLength);
+		for (int i = 0; i < sideLength; i++) remainingVertexToPointTo.push_back(i);
+		startVertexIndex = 0;
+
+		Edge e;
+		ListMember<List<Neighbor>>* iterList = neighborList.front();
+
+		// dojscie do kazdego wierzcholka
 		for (int i = 0; i < sideLength; i++) {
-			exists.push_back(i);
+			e.destination = i;
+			do {
+				e.source = rand() % sideLength;
+			} while (e.source == i);
+			e.weight = 1 + rand() % randValue;
+
+			iterList = neighborList.front();
+			for (int i = 0; i < e.source; i++) iterList = iterList->next;
+
+			iterList->data.push_back(Neighbor{ e.weight, e.destination });
+			neighborMatrix.addValue(e.source, e.destination, e.weight);
+			edgesLeft--;
 		}
-		ListMember<Neighbor>* inner = iterList->data.front();
-		// zostawiæ tylko mo¿liwoœci do wybrania
-		while (inner) {
-			exists.deleteFromList(inner->data.destination);
-			inner = inner->next;
-		}
 
-		// wyznaczenie celu
-		ListMember<int>* intCount = exists.front();
-		int dest = -1;
-		do {
-			dest = rand() % exists.size();
-			for (int i = 0; i < dest; i++) intCount = intCount->next;
+		while (edgesLeft) {
+			// wyznaczenie pierwszego wierzcho³ka
+			do {
+				random = rand() % sideLength;
+				iterList = neighborList.front();
+				for (int i = 0; i < random; i++) iterList = iterList->next;
+			} while (iterList->data.size() >= sideLength - 1);
+			
+			List<int> exists;
 
-			dest = intCount->data;
-		} while (dest == random);
-		*/
-
-		int dest = -1;
-		do {
-			dest = rand() % sideLength;
-		} while (dest == random);
-
-		int weight = 1 + rand() % randValue;
-
-		// wstawianie
-		iterList->data.push_back(Neighbor{ weight, dest, 0, 0 });
-		neighborMatrix.addValue(random, dest, weight);
-
-		edgesLeft--;
-	}
-}
-
-void FSP::dijkstraMatrixOld(bool display) {
-	// setup
-	int numberOfVertex = neighborMatrix.size();
-
-	// wierzcholki pozostale = q, s = wierzcholki odwiedzone
-	List<int> q, s;
-	for (int i = 0; i < numberOfVertex; i++) q.push_back(i);
-
-	int* d = new int[numberOfVertex];
-	int* p = new int[numberOfVertex];
-	for (int i = 0; i < numberOfVertex; i++) {
-		p[i] = -1;
-		if (i) d[i] = INT_MAX;
-		else d[i] = 0;
-	}
-
-	// wlasciwy algorytm
-	while (!q.empty()) {
-		// znajdz najmniejszy koszt dojscia
-		int lowestIndex = 0;
-		int lowestAmount = INT_MAX;
-		for (int i = 0; i < numberOfVertex; i++) {
-			if (d[i] < lowestAmount) {
-				ListMember<int>* frnt = s.front();
-				bool input = 1;
-				while (frnt) {
-					if (frnt->data == i) {
-						input = 0;
-						break;
-					}
-					frnt = frnt->next;
-				}
-				if (input) {
-					lowestIndex = i;
-					lowestAmount = d[i];
-				}
+			for (int i = 0; i < sideLength; i++) {
+				exists.push_back(i);
 			}
-		}
-
-		// usun ze zbioru q, wstaw do s
-		q.deleteFromList(lowestIndex);
-		s.push_back(lowestIndex);
-
-		for (int i = 0; i < numberOfVertex; i++) {
-			if (i != lowestIndex) {
-				int weight = neighborMatrix.valueInPosition(lowestIndex, i);
-				if (d[i] > lowestAmount + weight && weight) {
-					d[i] = lowestAmount + weight;
-					p[i] = lowestIndex;
-				}
+			ListMember<Neighbor>* inner = iterList->data.front();
+			// zostawiæ tylko mo¿liwoœci do wybrania
+			while (inner) {
+				exists.deleteFromList(inner->data.destination);
+				inner = inner->next;
 			}
-		}
-	}
 
-	if (display) {
-		std::cout << "u    ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << i << " ";
-		}
-		std::cout << "\nd[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << d[i] << " ";
-		}
-		std::cout << "\np[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << p[i] << " ";
-		}
-		std::cout << "\n";
-	}
+			// wyznaczenie celu
+			ListMember<int>* intCount = exists.front();
+			int dest = -1;
+			do {
+				intCount = exists.front();
+				dest = rand() % exists.size();
+				for (int i = 0; i < dest; i++) intCount = intCount->next;
 
-	// release resources
-	delete[] d;
-	d = nullptr;
-	delete[] p;
-	p = nullptr;
+				dest = intCount->data;
+			} while (dest == random);
+			
+				/*
+			int dest = -1;
+			do {
+				dest = rand() % sideLength;
+			} while (dest == random);
+			*/
+			int weight = 1 + rand() % randValue;
+			
+			// wstawianie
+			iterList->data.push_back(Neighbor{ weight, dest });
+			neighborMatrix.addValue(random, dest, weight);
+
+			edgesLeft--;
+		}
+	}	
 }
 
 void FSP::dijkstraMatrix(bool display) {
@@ -251,19 +223,16 @@ void FSP::dijkstraMatrix(bool display) {
 	}
 
 	if (display) {
-		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << i << " ";
+			if (p[i] == -1) {
+				std::cout << "Wierzcholek startowy: " << i << "\n";
+			}
+			else {
+				std::cout << d[i] << "\n";
+				displayPath(i, p);
+				std::cout << "\n";
+			}
 		}
-		std::cout << "\nd[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << d[i] << " ";
-		}
-		std::cout << "\np[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << p[i] << " ";
-		}
-		std::cout << "\n";
 	}
 
 	// release resources
@@ -328,19 +297,16 @@ void FSP::dijkstraList(bool display) {
 	}
 
 	if (display) {
-		std::cout << "u    ";
 		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << i << " ";
+			if (p[i] == -1) {
+				std::cout << "Wierzcholek startowy: " << i << "\n";
+			}
+			else {
+				std::cout << d[i] << "\n";
+				displayPath(i, p);
+				std::cout << "\n";
+			}
 		}
-		std::cout << "\nd[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << d[i] << " ";
-		}
-		std::cout << "\np[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << p[i] << " ";
-		}
-		std::cout << "\n";
 	}
 
 	// release resources
@@ -439,24 +405,23 @@ void FSP::fordBellmanMatrix(bool display) {
 
 		if (petla) std::cout << "Wystepuje petla!\n";
 
-		std::cout << "   u ";
 		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << i << " ";
+			if (p[i] == -1) {
+				std::cout << "Wierzcholek startowy: " << i << "\n";
+			}
+			else {
+				std::cout << d[i] << "\n";
+				displayPath(i, p);
+				std::cout << "\n";
+			}
 		}
-		std::cout << "\nd[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << d[i] << " ";
-		}
-		std::cout << "\np[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << p[i] << " ";
-		}
-		std::cout << "\n\n";
 	}
 
 	// release resources
 	delete[] d;
+	d = nullptr;
 	delete[] p;
+	p = nullptr;
 }
 
 void FSP::fordBellmanList(bool display) {
@@ -555,22 +520,100 @@ void FSP::fordBellmanList(bool display) {
 
 		if (petla) std::cout << "Wystepuje petla!\n";
 
-		std::cout << "   u ";
 		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << i << " ";
+			if (p[i] == -1) {
+				std::cout << "Wierzcholek startowy: " << i << "\n";
+			}
+			else {
+				std::cout << d[i] << "\n";
+				displayPath(i, p);
+				std::cout << "\n";
+			}
 		}
-		std::cout << "\nd[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << d[i] << " ";
-		}
-		std::cout << "\np[u] ";
-		for (int i = 0; i < numberOfVertex; i++) {
-			std::cout << p[i] << " ";
-		}
-		std::cout << "\n\n";
 	}
 
 	// release resources
 	delete[] d;
+	d = nullptr;
 	delete[] p;
+	p = nullptr;
+}
+
+void FSP::testFunc() {
+	std::fstream file;
+	file.open("fsp_results_99.txt", std::ios::out);
+
+	int sizes[7] = { 100, 150, 200, 250, 300, 350, 400 };
+	// int procent[3] = { 20, 60, 99 };
+	int procent[1] = { 99 };
+
+	if (file.good()) {
+		file << "Dijkstra - List:\n";
+		std::cout << "Dijkstra - List\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 1; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					dijkstraList();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nDijkstra - Matrix:\n";
+		std::cout << "Dijkstra - Matrix\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 1; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					dijkstraMatrix();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nFord-Bellman - List:\n";
+		std::cout << "Ford-Bellman - List\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 1; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					fordBellmanList();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nFord-Bellman - Matrix:\n";
+		std::cout << "Ford-Bellman - Matrix\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 1; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					fordBellmanMatrix();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+
+		file.close();
+	}
+	else return;
+}
+
+void FSP::displayPath(int p, int* tab) {
+	if (tab[p] != -1) {
+		displayPath(tab[p], tab);
+		std::cout << "->";
+	}
+	std::cout << p;
 }
