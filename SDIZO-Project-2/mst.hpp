@@ -16,6 +16,8 @@ public:
 	void algorithmPrimList(bool display = 0);
 	void algorithmKruskalMatrix(bool display = 0);
 	void algorithmKruskalList(bool display = 0);
+
+	void testFunc();
 	
 	void unionSet(int x, int y, int* rank, int* parent);
 	int findSet(int x, int* parent);

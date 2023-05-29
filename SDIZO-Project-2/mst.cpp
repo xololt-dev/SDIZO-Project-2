@@ -70,89 +70,149 @@ void MST::readFromFile(std::string FileName) {
 }
 
 void MST::generateGraph(int sideLength, int density) {
-	int random, edgesLeft = sideLength * (sideLength - 1) * density / 200;
-	if (edgesLeft < sideLength || !sideLength || !density) return;
+	if (density > 95) {
+		if (sideLength < 2) return;
 
-	// cleanup
-	freeHeap();
-	neighborList.clear();
-	neighborMatrix.clear();
+		// cleanup
+		freeHeap();
+		neighborList.clear();
+		neighborMatrix.clear();
 
-	int randValue = 9;
+		int randValue = INT_MAX - 1;
 
-	srand(time(NULL));
+		srand(time(NULL));
 
-	neighborList.generateEmpty(sideLength);
-	neighborMatrix.generateEmpty(sideLength);
+		neighborList.generateEmpty(sideLength);
+		neighborMatrix.generateEmpty(sideLength);
 
-	Edge e;
-	ListMember<List<Neighbor>>* iterList = neighborList.front();
-	// dojscie do kazdego wierzcholka
-	for (int i = 1; i < sideLength; i++) {
-		e.destination = i;
-		do {
-			e.source = rand() % i;
-		} while (e.source == i);
-		e.weight = 1 + rand() % randValue;
+		ListMember<List<Neighbor>>* iterList = neighborList.front();
+		for (int i = 0; i < sideLength; i++) {
+			for (int j = i + 1; j < sideLength; j++) {
+				if (i != j) {
+					int weight = 1 + rand() % randValue;
 
+					ListMember<List<Neighbor>>* secondary = neighborList.front();
+					for (int x = 0; x < j; x++) secondary = secondary->next;
+					secondary->data.push_back(Neighbor{ weight, i });
+					iterList->data.push_back(Neighbor{ weight, j });
+
+					neighborMatrix.addValue(i, j, weight);
+					neighborMatrix.addValue(j, i, weight);
+				}
+			}
+			iterList = iterList->next;
+		}
+
+		int edgesToDelete = sideLength * (sideLength - 1) * (100 - density) / 200;
 		iterList = neighborList.front();
-		for (int i = 0; i < e.source; i++) iterList = iterList->next;
 
-		iterList->data.push_back(Neighbor{ e.weight, e.destination, 0, 0 });
-		neighborMatrix.addValue(e.source, e.destination, e.weight);
-		neighborMatrix.addValue(e.destination, e.source, e.weight);
-
-		for (int i = 0; i < (e.destination - e.source); i++) iterList = iterList->next;
-		iterList->data.push_back(Neighbor{e.weight, e.source, 0, 0});
-
-		edgesLeft--;
-	}
-
-	// ta czêœæ nie dokoñczona
-
-	while (edgesLeft) {
-		// wyznaczenie pierwszego wierzcho³ka
-		do {
-			random = rand() % sideLength;
+		int i = 0;
+		while (edgesToDelete > 0) {
+			int random = rand() % sideLength;
 			iterList = neighborList.front();
 			for (int i = 0; i < random; i++) iterList = iterList->next;
-		} while (iterList->data.size() >= sideLength - 1);
+			ListMember<Neighbor>* inner = iterList->data.front();
+			for (int i = 0; i < random; i++) {
+				if (inner->next) inner = inner->next;
+				else break;
+			}
+			Neighbor temp = inner->data;
 
-		List<int> exists;
-		for (int i = 0; i < sideLength; i++) {
-			if (i != random) exists.push_back(i);
+			iterList->data.deleteFromList(temp);
+			iterList = neighborList.front();
+			for (int i = 0; i < temp.destination; i++) iterList = iterList->next;
+			iterList->data.deleteFromList(Neighbor{temp.weight, random});
+			neighborMatrix.deleteValue(random, temp.destination);
+			neighborMatrix.deleteValue(temp.destination, random);
+
+			edgesToDelete--;
 		}
-		
-		ListMember<Neighbor>* inner = iterList->data.front();
+	}
+	else {
+		int random, edgesLeft = sideLength * (sideLength - 1) * density / 200;
+		if (edgesLeft < sideLength || sideLength < 2 || !density) return;
 
-		// zostawiæ tylko mo¿liwoœci do wybrania
-		while (inner) {
-			exists.deleteFromList(inner->data.destination);
-			inner = inner->next;
+		// cleanup
+		freeHeap();
+		neighborList.clear();
+		neighborMatrix.clear();
+
+		int randValue = INT_MAX - 1;
+
+		srand(time(NULL));
+
+		neighborList.generateEmpty(sideLength);
+		neighborMatrix.generateEmpty(sideLength);
+
+		Edge e;
+		ListMember<List<Neighbor>>* iterList = neighborList.front();
+		// dojscie do kazdego wierzcholka
+		for (int i = 1; i < sideLength; i++) {
+			e.destination = i;
+			do {
+				e.source = rand() % i;
+			} while (e.source == i);
+			e.weight = 1 + rand() % randValue;
+
+			iterList = neighborList.front();
+			for (int i = 0; i < e.source; i++) iterList = iterList->next;
+
+			iterList->data.push_back(Neighbor{ e.weight, e.destination });
+			neighborMatrix.addValue(e.source, e.destination, e.weight);
+			neighborMatrix.addValue(e.destination, e.source, e.weight);
+
+			for (int i = 0; i < (e.destination - e.source); i++) iterList = iterList->next;
+			iterList->data.push_back(Neighbor{ e.weight, e.source });
+
+			edgesLeft--;
 		}
 
-		// wyznaczenie celu
-		ListMember<int>* intCount = exists.front();
-		int dest = -1;
-		do {
-			dest = rand() % exists.size();
-			for (int i = 0; i < dest; i++) intCount = intCount->next;
+		// ta czêœæ nie dokoñczona
 
-			dest = intCount->data;
-		} while (dest == random);
+		while (edgesLeft) {
+			// wyznaczenie pierwszego wierzcho³ka
+			do {
+				random = rand() % sideLength;
+				iterList = neighborList.front();
+				for (int i = 0; i < random; i++) iterList = iterList->next;
+			} while (iterList->data.size() >= sideLength - 1);
 
-		int weight = 1 + rand() % randValue;
+			List<int> exists;
+			for (int i = 0; i < sideLength; i++) {
+				if (i != random) exists.push_back(i);
+			}
 
-		// wstawianie
-		iterList->data.push_back(Neighbor{ weight, dest, 0, 0 });
-		neighborMatrix.addValue(random, dest, weight);
-		neighborMatrix.addValue(dest, random, weight);
-		
-		iterList = neighborList.front();
-		for (int i = 0; i < dest; i++) iterList = iterList->next;
-		iterList->data.push_back(Neighbor{weight, random, 0, 0});
+			ListMember<Neighbor>* inner = iterList->data.front();
 
-		edgesLeft--;
+			// zostawiæ tylko mo¿liwoœci do wybrania
+			while (inner) {
+				exists.deleteFromList(inner->data.destination);
+				inner = inner->next;
+			}
+
+			// wyznaczenie celu
+			ListMember<int>* intCount = exists.front();
+			int dest = -1;
+			do {
+				dest = rand() % exists.size();
+				for (int i = 0; i < dest; i++) intCount = intCount->next;
+
+				dest = intCount->data;
+			} while (dest == random);
+
+			int weight = 1 + rand() % randValue;
+
+			// wstawianie
+			iterList->data.push_back(Neighbor{ weight, dest });
+			neighborMatrix.addValue(random, dest, weight);
+			neighborMatrix.addValue(dest, random, weight);
+
+			iterList = neighborList.front();
+			for (int i = 0; i < dest; i++) iterList = iterList->next;
+			iterList->data.push_back(Neighbor{ weight, random });
+
+			edgesLeft--;
+		}
 	}
 }
 
@@ -309,7 +369,7 @@ void MST::algorithmPrimList(bool display) {
 			}
 		}
 	}
-	freeHeap();
+	// freeHeap();
 
 	if (display) displayList(display);
 
@@ -422,6 +482,72 @@ void MST::algorithmKruskalList(bool display) {
 	parent = nullptr;
 	delete[] rank;
 	rank = nullptr;
+}
+
+void MST::testFunc() {
+	std::fstream file;
+	file.open("mst_results.txt", std::ios::out);
+
+	int sizes[7] = {100, 150, 200, 250, 300, 350, 400};
+	int procent[3] = { 20, 60, 99 };
+
+	if (file.good()) {
+		file << "Prim - List:\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 3; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					algorithmPrimList();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nPrim - Matrix:\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 3; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					algorithmPrimMatrix();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nKruskal - List:\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 3; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					algorithmKruskalList();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		file << "\nKruskal - Matrix:\n";
+		for (int i = 0; i < 7; i++) {
+			file << "Vertex: " << sizes[i] << "\n";
+			for (int pr = 0; pr < 3; pr++) {
+				file << "Density: " << procent[pr] << "\n";
+				for (int time = 0; time < 50; time++) {
+					generateGraph(sizes[i], procent[pr]);
+					auto start = std::chrono::high_resolution_clock::now();
+					algorithmKruskalMatrix();
+					file << (std::chrono::high_resolution_clock::now() - start).count() << "\n";
+				}
+			}
+		}
+		
+		file.close();
+	}
+	else return;	
 }
 
 void MST::unionSet(int x, int y, int* rank, int* parent) {
