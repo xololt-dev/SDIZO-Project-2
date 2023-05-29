@@ -28,6 +28,7 @@ void displaySubMenu(std::string info) {
 		std::cout << "4. Algorytm Prima" << std::endl : std::cout << "4. Algorytm Dijkstry" << std::endl;
 	info == "--- MST ---" ?
 		std::cout << "5. Algorytm Kruskala" << std::endl : std::cout << "5. Algorytm Forda-Bellmana" << std::endl;
+	std::cout << "6. Test\n";
 	std::cout << "0. Powrot do menu" << std::endl;
 	std::cout << "Podaj opcje:";
 }
@@ -77,6 +78,10 @@ void menu_MST() {
 			mst.displayList(1);
 			break;
 		}
+		case '6': {//tutaj test
+			mst.testFunc();
+			break;
+		}
 		}
 	} while (opt != '0');
 }
@@ -123,6 +128,10 @@ void menu_FSP() {
 			fsp.fordBellmanList(1);
 			fsp.fordBellmanMatrix(1);
 
+			break;
+		}
+		case '6': { //tutaj test
+			fsp.testFunc();
 			break;
 		}
 		}
