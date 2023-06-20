@@ -1,5 +1,7 @@
 # SDIZO-Project-2
 
+University project
+
 ## Algorithms implemented
 ### MST
 - Prim
